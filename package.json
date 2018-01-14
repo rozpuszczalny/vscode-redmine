@@ -4,6 +4,7 @@
     "description": "Integration with VSCode and Redmine",
     "version": "0.0.1",
     "publisher": "rozpuszczalny",
+    "license": "MIT",
     "engines": {
         "vscode": "^1.19.0"
     },
@@ -11,14 +12,37 @@
         "Other"
     ],
     "activationEvents": [
-        "onCommand:extension.sayHello"
+        "onCommand:redmine.listOpenIssuesAssignedToMe"
     ],
     "main": "./out/extension",
     "contributes": {
         "commands": [{
-            "command": "extension.sayHello",
-            "title": "Hello World"
-        }]
+            "command": "redmine.listOpenIssuesAssignedToMe",
+            "title": "Redmine: List open issues assigned to me"
+        }],
+        "configuration": {
+            "title": "Redmine Integration",
+            "properties": {
+                "redmine.serverUrl": {
+                    "type": "string",
+                    "description": "URL of Redmine"
+                },
+                "redmine.serverPort": {
+                    "type": "number",
+                    "default": 443,
+                    "description": "Port of Redmine"
+                },
+                "redmine.serverIsSsl": {
+                    "type": "boolean",
+                    "default": "true",
+                    "description": "Should connect through SSL or not"
+                },
+                "redmine.apiKey": {
+                    "type": "string",
+                    "description": "API Key"
+                }
+            }
+        }
     },
     "scripts": {
         "vscode:prepublish": "npm run compile",
