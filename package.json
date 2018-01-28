@@ -5,6 +5,10 @@
     "version": "0.0.1",
     "publisher": "rozpuszczalny",
     "license": "MIT",
+    "repository": {
+        "type": "git",
+        "url": "https://github.com/rozpuszczalny/vscode-redmine.git"
+    },
     "engines": {
         "vscode": "^1.19.0"
     },
