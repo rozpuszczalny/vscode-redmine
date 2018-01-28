@@ -1,15 +1,25 @@
+import { IssueController } from './controllers/issue-controller';
 'use strict';
 
 import * as vscode from 'vscode';
 import * as https from 'https';
 import * as http from 'http';
-import { CancellationToken } from 'vscode';
+import { CancellationToken, QuickPickItem } from 'vscode';
+
+import { Redmine } from './redmine/redmine';
+
+export interface PickItem extends QuickPickItem {
+    label: string;
+    description: string;
+    detail: string;
+    fullIssue: any;
+}
 
 export function activate(context: vscode.ExtensionContext) {
     console.log(`Context storage path for my extension is: ${context.storagePath}`);
     console.log(`Context extension path for my extension is: ${context.extensionPath}`);
 
-    let previewUri = vscode.Uri.parse('redmine-issue-preview://authority/redmine-issue-preview');
+    let redmine: Redmine = null;
 
     let settings = {
         "serverUrl": null,
@@ -21,20 +31,11 @@ export function activate(context: vscode.ExtensionContext) {
     let hadErrors = false;
 
     // TODO: Change this poor settings management system
-    let wsSettings = vscode.workspace.getConfiguration('redmine');
-    for (let key in settings) {
-        if (!wsSettings.has(key) || (wsSettings.get(key) === "")) {
-            vscode.window.showErrorMessage(`Redmine integration: ${key} is required`);
-            hadErrors = true;
-        } else {
-            settings[key] = wsSettings.get(key);
-        }
-    }
-
-    console.log(settings);
-    vscode.workspace.onDidChangeConfiguration(function () {
+    let wsSettings: vscode.WorkspaceConfiguration = vscode.workspace.getConfiguration('redmine');
+    
+    let configUpdate = () => {
         hadErrors = false;
-        let wsSettings = vscode.workspace.getConfiguration('redmine');
+        wsSettings = vscode.workspace.getConfiguration('redmine');
         for (let key in settings) {
             if (!wsSettings.has(key) || (wsSettings.get(key) === "")) {
                 vscode.window.showErrorMessage(`Redmine integration: ${key} is required`);
@@ -43,10 +44,20 @@ export function activate(context: vscode.ExtensionContext) {
                 settings[key] = wsSettings.get(key);
             }
         }
-    }, null, context.subscriptions);
+
+        if (!hadErrors) {
+            redmine = new Redmine(settings.serverUrl, settings.serverPort, settings.serverIsSsl, settings.apiKey);
+        } else {
+            redmine = null;
+        }
+    };
+
+    configUpdate();
+
+    vscode.workspace.onDidChangeConfiguration(configUpdate, null, context.subscriptions);
 
     let disposable = vscode.commands.registerCommand('redmine.listOpenIssuesAssignedToMe', () => {
-        if (hadErrors) {
+        if (redmine == null) {
             vscode.window.showErrorMessage(`Redmine integration: Configuration file is not complete!`);
             return;
         }
@@ -62,83 +73,31 @@ export function activate(context: vscode.ExtensionContext) {
             }
         };
 
-        let promise = new Promise((resolve, rej) => {
-            let requester = settings.serverIsSsl ? https.request : http.request;
+        let promise = redmine.getIssuesAssignedToMe();
 
-            let req = requester(options, (res) => {
-                let data = new Buffer("");
+        promise.then((issues) => {
+            vscode.window.showQuickPick<PickItem>(issues.issues.map((issue) => {
+                return {
+                    "label": `[${issue.tracker.name}] (${issue.status.name}) ${issue.subject} by ${issue.author.name}`,
+                    "description": issue.description,
+                    "detail": `Issue #${issue.id} assigned to ${issue.assigned_to ? issue.assigned_to.name : "no one"}`,
+                    "fullIssue": issue
+                }
+            })).then((issue) => {
+                if (issue === undefined) return;
+                
+                let controller = new IssueController(issue.fullIssue, redmine);
 
-                res.on('data', (d: Buffer) => {
-                    data = Buffer.concat([data, d]);
-                });
-
-                res.on('end', () => {
-                    if (res.statusCode == 401) {
-                        vscode.window.showErrorMessage("Server returned 401 (perhaps your API Key is not valid?)");
-                        rej();
-                        return;
-                    }
-                    if (res.statusCode == 403) {
-                        vscode.window.showErrorMessage("Server returned 403 (perhaps you haven't got permissions?)");
-                        rej();
-                        return;
-                    }
-                    let object = JSON.parse(data.toString('utf8'));
-
-                    // TODO: Change QuickPick logic
-                    resolve();
-                    vscode.window.showQuickPick<{
-                        label: string,
-                        description: string,
-                        detail: string,
-                        fullIssue: any
-                    }>(object.issues.map((issue) => {
-                        return {
-                            "label": `[${issue.tracker.name}] ${issue.subject} by ${issue.author.name}`,
-                            "description": issue.description,
-                            "detail": `Issue #${issue.id} assigned to ${issue.assigned_to ? issue.assigned_to.name : "no one"}`,
-                            "fullIssue": issue
-                        }
-                    })).then((issue) => {
-                        if (issue === undefined) return;
-                        
-                        // TODO: Better action management
-                        vscode.window.showQuickPick<{
-                            action: string,
-                            label: string,
-                            description: string,
-                            detail?: string
-                        }>([{
-                            action: "openInBrowser",
-                            label: "Open in browser",
-                            description: "Opens an issue in a browser (might need additional login)",
-                            detail: `Issue #${issue.fullIssue.id} assigned to ${issue.fullIssue.assigned_to ? issue.fullIssue.assigned_to.name : "no one"}`
-                        }]).then((option) => {
-                            if (option.action === "openInBrowser") {
-                                vscode.commands.executeCommand("vscode.open", vscode.Uri.parse(`http${settings.serverIsSsl?'s':''}://${settings.serverUrl}${settings.serverPort == 80 || settings.serverPort == 443 ? '' : (':'+settings.serverPort)}/issues/${issue.fullIssue.id}`)).then((success) => {
-                                }, (reason) => {
-                                    vscode.window.showErrorMessage(reason);
-                                });
-                            }
-                        })
-                    })
-                })
-            });
-
-            req.on('error', (e) => {
-                // TODO: Better error management
-                console.error(e);
-                rej();
-            });
-            req.end();
+                controller.listActions();
+            })
+        }, (error) => {
+            vscode.window.showErrorMessage(error);
         })
-
-
 
         vscode.window.withProgress({
             location: vscode.ProgressLocation.Window
         }, (progress) => {
-            progress.report({ "message": `Waiting for response from ${settings.serverUrl}...` });
+            progress.report({ "message": `Waiting for response from ${redmine.host}...` });
             return promise;
         });
     });
