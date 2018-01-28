@@ -1,6 +1,5 @@
 import * as https from 'https';
 import * as http from 'http';
-import * as request from 'request';
 
 export class Redmine {
     readonly issuesAssignedToMe: string = "/issues.json?status_id=open&assigned_to_id=me";
