@@ -26,6 +26,9 @@ No known issues yet. If you found one, feel free to open an issue!
 
 ## Release Notes
 
+### 0.0.2
+* Added repository URL to `package.json`, so VSCode Marketplace see `README.md` and other files
+
 ### 0.0.1
 
 Initial release of `vscode-redmine`

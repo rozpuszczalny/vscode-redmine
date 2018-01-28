@@ -2,7 +2,7 @@
     "name": "vscode-redmine",
     "displayName": "vscode-redmine",
     "description": "Integration with VSCode and Redmine",
-    "version": "0.0.1",
+    "version": "0.0.2",
     "publisher": "rozpuszczalny",
     "license": "MIT",
     "repository": {

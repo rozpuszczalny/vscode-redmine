@@ -3,6 +3,9 @@ All notable changes to the "vscode-redmine" extension will be documented in this
 
 ## [Unreleased]
 
+## 0.0.2 - 28.01.2018
+- Added repository URL to `package.json`, so VSCode Marketplace see `README.md` and other files
+
 ## 0.0.1 - 28.01.2018
 Initial release of `vscode-redmine`
 
