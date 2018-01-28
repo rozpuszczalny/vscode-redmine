@@ -94,7 +94,7 @@ export function activate(context: vscode.ExtensionContext) {
                         fullIssue: any
                     }>(object.issues.map((issue) => {
                         return {
-                            "label": `${issue.subject} by ${issue.author.name}`,
+                            "label": `[${issue.tracker.name}] ${issue.subject} by ${issue.author.name}`,
                             "description": issue.description,
                             "detail": `Issue #${issue.id} assigned to ${issue.assigned_to ? issue.assigned_to.name : "no one"}`,
                             "fullIssue": issue
