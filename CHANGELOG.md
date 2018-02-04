@@ -2,15 +2,30 @@
 All notable changes to the "vscode-redmine" extension will be documented in this file.
 
 ## [Unreleased]
-- Added possibility to change issue status
+
+## 0.1.0 - 04.02.2018
+
+Added more basic functionalities to this extensions.
+
+### Added
+- possibility to change issue status
+- possibility to add time entries to issue
+- getting issue actions by typing in an issue id
+
+### Changed
+- splitted changelog entries into separate sections
+
+### Removed
+- `Release notes` section in `README.md` - it can be viewed here, so there is no reason to copy that across multiple files
 
 ## 0.0.2 - 28.01.2018
-- Added repository URL to `package.json`, so VSCode Marketplace see `README.md` and other files
+### Added
+- repository URL to `package.json`, so VSCode Marketplace see `README.md` and other files
 
 ## 0.0.1 - 28.01.2018
 Initial release of `vscode-redmine`
 
 ### Added
-- Added list of issues assigned to API key owner
-- Added possibility to open issue in browser
-- Added configuration for server and API key
+- list of issues assigned to API key owner
+- possibility to open issue in browser
+- configuration for server and API key

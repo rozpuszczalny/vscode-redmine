@@ -5,6 +5,41 @@ import { PickItem } from '../extension';
 export class IssueController {
     constructor(private issue: any, private redmine: Redmine) { }
 
+    chooseTimeEntryType(activities: any[]) {
+        vscode.window.showQuickPick<PickItem>(activities.map((activity) => {
+            return {
+                "label": activity.name,
+                "description": "",
+                "detail": "",
+                "fullIssue": activity
+            }
+        }), {
+            placeHolder: "Pick an activity type"
+        }).then((act) => {
+            if (!act) return;
+
+            this.setTimeEntryMessage(act);
+        });
+    }
+
+    setTimeEntryMessage(activity: any) {
+        vscode.window.showInputBox({
+            placeHolder: `"hours spent|additional message" or "hours spent|"`
+        }).then((input) => {
+            let indexOf = input.indexOf("|");
+            if (indexOf === -1) {
+                vscode.window.showWarningMessage(`Provide message in the following pattern: "hours spent|additional message" or "hours spent|", if you don't want to provide a message`).then(() => this.setTimeEntryMessage(activity), () => this.setTimeEntryMessage(activity));
+                return;
+            }
+            let hours = input.substring(0, indexOf);
+            let message = input.substring(indexOf+1);
+
+            this.redmine.addTimeEntry(this.issue.id, activity.id, hours, message).then(() => {
+                vscode.window.showInformationMessage(`Time entry for issue #${this.issue.id} has been added.`);
+            });
+        });
+    }
+
     changeIssueStatus(statuses: any[]) {
         vscode.window.showQuickPick<PickItem>(statuses.map((status) => {
             return {
@@ -13,7 +48,9 @@ export class IssueController {
                 "detail": "",
                 "fullIssue": status
             }
-        })).then((stat) => {
+        }), {
+            placeHolder: "Pick a new status"
+        }).then((stat) => {
             if (!stat) return;
 
             this.redmine.setIssueStatus(this.issue, stat.fullIssue.id).then(() => {
@@ -35,7 +72,14 @@ export class IssueController {
         });
     }
 
+    private addTimeEntry() {
+        this.redmine.getTimeEntryActivities().then((activities) => {
+            this.chooseTimeEntryType(activities.time_entry_activities);
+        });
+    }
+
     listActions() {
+        let issueDetails = `Issue #${this.issue.id} assigned to ${this.issue.assigned_to ? this.issue.assigned_to.name : "no one"}`;
         vscode.window.showQuickPick<{
             action: string,
             label: string,
@@ -45,19 +89,29 @@ export class IssueController {
             action: "changeStatus",
             label: "Change status",
             description: "Changes issue status",
-            detail: `Issue #${this.issue.id} assigned to ${this.issue.assigned_to ? this.issue.assigned_to.name : "no one"}`
+            detail: issueDetails
+        }, {
+            action: "addTimeEntry",
+            label: "Add time entry",
+            description: "Adds new time entry to this issue",
+            detail: issueDetails
         }, {
             action: "openInBrowser",
             label: "Open in browser",
             description: "Opens an issue in a browser (might need additional login)",
-            detail: `Issue #${this.issue.id} assigned to ${this.issue.assigned_to ? this.issue.assigned_to.name : "no one"}`
-        }]).then((option) => {
+            detail: issueDetails
+        }], {
+            placeHolder: "Pick an action to do"
+        }).then((option) => {
             if (!option) return;
             if (option.action === "openInBrowser") {
                 this.openInBrowser();
             }
             if (option.action === "changeStatus") {
                 this.changeStatus();
+            }
+            if (option.action === "addTimeEntry") {
+                this.addTimeEntry();
             }
         }, (error) => { /* ? */ })
     }

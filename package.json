@@ -2,7 +2,7 @@
     "name": "vscode-redmine",
     "displayName": "vscode-redmine",
     "description": "Integration with VSCode and Redmine",
-    "version": "0.0.2",
+    "version": "0.1.0",
     "publisher": "rozpuszczalny",
     "license": "MIT",
     "repository": {
@@ -16,13 +16,17 @@
         "Other"
     ],
     "activationEvents": [
-        "onCommand:redmine.listOpenIssuesAssignedToMe"
+        "onCommand:redmine.listOpenIssuesAssignedToMe",
+        "onCommand:redmine.openActionsForIssue"
     ],
     "main": "./out/extension",
     "contributes": {
         "commands": [{
             "command": "redmine.listOpenIssuesAssignedToMe",
             "title": "Redmine: List open issues assigned to me"
+        }, {
+            "command": "redmine.openActionsForIssue",
+            "title": "Redmine: Actions for issue"
         }],
         "configuration": {
             "title": "Redmine Integration",

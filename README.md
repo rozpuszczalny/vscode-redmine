@@ -5,6 +5,8 @@ Redmine extension for Visual Studio Code.
 ## Features
 
 * List of issues assigned to you
+* Change status of an issue
+* Add time entry to an issue
 * Open issue in browser
 
 ## Requirements
@@ -26,14 +28,6 @@ No known issues yet. If you found one, feel free to open an issue!
 
 ## Release Notes
 
-### 0.0.2
-* Added repository URL to `package.json`, so VSCode Marketplace see `README.md` and other files
-
-### 0.0.1
-
-Initial release of `vscode-redmine`
-* Added list of issues assigned to API key owner
-* Added possibility to open issue in browser
-* Added configuration for server and API key
+See `CHANGELOG.md`
 
 **Enjoy!**

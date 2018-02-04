@@ -16,9 +16,6 @@ export interface PickItem extends QuickPickItem {
 }
 
 export function activate(context: vscode.ExtensionContext) {
-    console.log(`Context storage path for my extension is: ${context.storagePath}`);
-    console.log(`Context extension path for my extension is: ${context.extensionPath}`);
-
     let redmine: Redmine = null;
 
     let settings = {
@@ -56,22 +53,11 @@ export function activate(context: vscode.ExtensionContext) {
 
     vscode.workspace.onDidChangeConfiguration(configUpdate, null, context.subscriptions);
 
-    let disposable = vscode.commands.registerCommand('redmine.listOpenIssuesAssignedToMe', () => {
+    let listIssues = vscode.commands.registerCommand('redmine.listOpenIssuesAssignedToMe', () => {
         if (redmine == null) {
             vscode.window.showErrorMessage(`Redmine integration: Configuration file is not complete!`);
             return;
         }
-
-        // TODO: Move request-specific code to another class
-        const options: http.RequestOptions = {
-            hostname: settings.serverUrl,
-            port: settings.serverPort,
-            path: '/issues.json?status_id=open&assigned_to_id=me',
-            method: 'GET',
-            headers: {
-                "X-Redmine-API-Key": settings.apiKey
-            }
-        };
 
         let promise = redmine.getIssuesAssignedToMe();
 
@@ -102,7 +88,44 @@ export function activate(context: vscode.ExtensionContext) {
         });
     });
 
-    context.subscriptions.push(disposable);
+    let getIssue = vscode.commands.registerCommand('redmine.openActionsForIssue', () => {
+        if (redmine == null) {
+            vscode.window.showErrorMessage(`Redmine integration: Configuration file is not complete!`);
+            return;
+        }
+
+        vscode.window.showInputBox({
+            placeHolder: `Type in issue id`
+        }).then((issueId) => {
+            if (!issueId) return;
+            if (!issueId.trim()) {
+                // Warning message
+                return;
+            }
+
+            let promise = redmine.getIssueById(issueId);
+    
+            promise.then((issue) => {
+                if (!issue) return;
+                
+                let controller = new IssueController(issue.issue, redmine);
+    
+                controller.listActions();
+            }, (error) => {
+                vscode.window.showErrorMessage(error);
+            })
+    
+            vscode.window.withProgress({
+                location: vscode.ProgressLocation.Window
+            }, (progress) => {
+                progress.report({ "message": `Waiting for response from ${redmine.host}...` });
+                return promise;
+            });
+        });
+    });
+
+    context.subscriptions.push(listIssues);
+    context.subscriptions.push(getIssue);
 }
 
 // this method is called when your extension is deactivated
