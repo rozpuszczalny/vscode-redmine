@@ -3,6 +3,9 @@ All notable changes to the "vscode-redmine" extension will be documented in this
 
 ## [Unreleased]
 
+### Added
+- `rejectUnauthorized` parameter, which is passed to https request options
+
 ## 0.1.1 - 14.03.2018
 
 ### Fixed

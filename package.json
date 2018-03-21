@@ -48,6 +48,11 @@
                 "redmine.apiKey": {
                     "type": "string",
                     "description": "API Key"
+                },
+                "redmine.rejectUnauthorized": {
+                    "type": "boolean",
+                    "description": "Pass rejectUnauthorized to https request options. Use only if your redmine instance has self-signed certificate!",
+                    "default": "true"
                 }
             }
         }

@@ -22,7 +22,8 @@ export function activate(context: vscode.ExtensionContext) {
         "serverUrl": null,
         "serverPort": null,
         "serverIsSsl": null,
-        "apiKey": null
+        "apiKey": null,
+        "rejectUnauthorized": true
     };
 
     let hadErrors = false;
@@ -43,7 +44,7 @@ export function activate(context: vscode.ExtensionContext) {
         }
 
         if (!hadErrors) {
-            redmine = new Redmine(settings.serverUrl, settings.serverPort, settings.serverIsSsl, settings.apiKey);
+            redmine = new Redmine(settings.serverUrl, settings.serverPort, settings.serverIsSsl, settings.apiKey, settings.rejectUnauthorized);
         } else {
             redmine = null;
         }

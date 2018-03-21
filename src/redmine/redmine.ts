@@ -33,7 +33,8 @@ export class Redmine {
     constructor(public address: string,
         public port: number,
         public isSsl: boolean,
-        public apiKey: string) {
+        public apiKey: string,
+        public rejectUnauthorized = true) {
 
         let firstSlash = address.indexOf('/');
 
@@ -50,7 +51,8 @@ export class Redmine {
             port: this.port,
             headers: {
                 "X-Redmine-API-Key": this.apiKey
-            }
+            },
+            rejectUnauthorized: rejectUnauthorized
         };
     }
 
