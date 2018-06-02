@@ -25,6 +25,9 @@
             "command": "redmine.listOpenIssuesAssignedToMe",
             "title": "Redmine: List open issues assigned to me"
         }, {
+            "command": "redmine.chooseCustomQuery",
+            "title": "Redmine: List custom queries"
+        }, {
             "command": "redmine.openActionsForIssue",
             "title": "Redmine: Actions for issue"
         }],
@@ -53,6 +56,11 @@
                     "type": "boolean",
                     "description": "Pass rejectUnauthorized to https request options. Use only if your redmine instance has self-signed certificate!",
                     "default": "true"
+                },
+                "redmine.customQueries": {
+                    "type": "array",
+                    "description": "Array of custom queries",
+                    "default": []
                 }
             }
         }

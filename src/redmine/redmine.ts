@@ -7,6 +7,7 @@ export class Redmine {
     readonly pathIssueStatuses: () => string = () => { return "/issue_statuses.json"; };
     readonly pathTimeEntryActivities: () => string = () => { return "/enumerations/time_entry_activities.json"; };
     readonly pathTimeEntries: () => string = () => { return "/time_entries.json"; };
+    readonly pathIssues = () => { return `/issues.json?status_id=*&assigned_to_id=*`; };
 
     /**
      * URL that will be used to open link in a browser
@@ -132,6 +133,13 @@ export class Redmine {
      * Returns promise, that resolves to list of issues assigned to api key owner
      */
     getIssuesAssignedToMe(): Promise<{ issues: any[] }> {
+        return this.doRequest<{ issues: any[] }>(this.pathIssuesAssignedToMe(), "GET");
+    }
+
+    /**
+     * Returns promise, that resolves to list of all issues
+     */
+    getAllIssues(): Promise<{ issues: any[] }> {
         return this.doRequest<{ issues: any[] }>(this.pathIssuesAssignedToMe(), "GET");
     }
 

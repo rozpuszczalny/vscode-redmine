@@ -23,7 +23,13 @@ export function activate(context: vscode.ExtensionContext) {
         "serverPort": null,
         "serverIsSsl": null,
         "apiKey": null,
-        "rejectUnauthorized": true
+        "rejectUnauthorized": true,
+        // Type:
+        //  * name - name of query
+        //  * conditions - array of conditions, concated with OR
+        //    * name - name of condition, eg. project
+        //    * value - value of condition, eg. "In progress" or 1 (which is id of project id)
+        "customQueries": []
     };
 
     let hadErrors = false;
@@ -45,6 +51,7 @@ export function activate(context: vscode.ExtensionContext) {
 
         if (!hadErrors) {
             redmine = new Redmine(settings.serverUrl, settings.serverPort, settings.serverIsSsl, settings.apiKey, settings.rejectUnauthorized);
+            console.log(settings.customQueries);
         } else {
             redmine = null;
         }
@@ -125,8 +132,59 @@ export function activate(context: vscode.ExtensionContext) {
         });
     });
 
+    let customQueries = vscode.commands.registerCommand('redmine.chooseCustomQuery', () => {
+        if (redmine == null) {
+            vscode.window.showErrorMessage(`Redmine integration: Configuration file is not complete!`);
+            return;
+        }
+
+        vscode.window.showQuickPick<PickItem>(settings.customQueries.map(it => { return {
+            "label": it.name,
+            "description": "",
+            "detail": "",
+            "fullIssue": it
+        }; })).then(
+            (chosen) => {
+                if (!chosen) return;
+                redmine.getAllIssues().then(
+                    (issues) => {
+                        vscode.window.showQuickPick<PickItem>(issues.issues.filter(
+                            (issue) => {
+                                return chosen.fullIssue.conditions.some((con => {
+                                    return issue[con.name].id === con.value || issue[con.name].name === con.value;
+                                }))
+                                // return issue[chosen.fullIssue.name].id === chosen.fullIssue.value || issue[chosen.fullIssue.name].name === chosen.fullIssue.value;
+                            }
+                        ).map((issue) => {
+                            return {
+                                "label": `[${issue.tracker.name}] (${issue.status.name}) ${issue.subject} by ${issue.author.name}`,
+                                "description": issue.description.split("\n").join(" ").split("\r").join(""),
+                                "detail": `Issue #${issue.id} assigned to ${issue.assigned_to ? issue.assigned_to.name : "no one"}`,
+                                "fullIssue": issue
+                            }
+                        })).then((issue) => {
+                            if (issue === undefined) return;
+                            
+                            let controller = new IssueController(issue.fullIssue, redmine);
+            
+                            controller.listActions();
+                        })
+                        // issues.issues.forEach(issue => {
+                        //     if (issue[chosen.name].id === chosen.value || issue[chosen.name].name === chosen.value) {
+                        //         let controller = new IssueController(issue, redmine);
+
+                        //         controller.listActions();
+                        //     } 
+                        // });
+                    }
+                )
+            }
+        );
+    });
+
     context.subscriptions.push(listIssues);
     context.subscriptions.push(getIssue);
+    context.subscriptions.push(customQueries);
 }
 
 // this method is called when your extension is deactivated
