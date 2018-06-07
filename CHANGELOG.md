@@ -3,6 +3,14 @@ All notable changes to the "vscode-redmine" extension will be documented in this
 
 ## [Unreleased]
 
+## 0.2.1 - 07.06.2017
+
+### Added
+- Extension icon
+
+### Changed
+- Display name
+
 ## 0.2.0 - 02.06.2018
 
 ### Added
