@@ -3,7 +3,23 @@ All notable changes to the "vscode-redmine" extension will be documented in this
 
 ## [Unreleased]
 
-## 0.2.1 - 07.06.2017
+## 0.3.0 - 21.06.2018
+
+### Added
+- Create issue command
+  - You can configure project name under `redmine.projectName` setting
+  - You can choose project from the list, if `redmine.projectName` isn't configured
+- 0.2.2 `CHANGELOG.md` entry
+
+### Changed
+- 0.2.1 correct year in `CHANGELOG.md`
+
+## 0.2.2 - 07.06.2018
+
+### Added
+- Attribution of Redmine Logo
+
+## 0.2.1 - 07.06.2018
 
 ### Added
 - Extension icon

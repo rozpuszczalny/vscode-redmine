@@ -2,7 +2,7 @@
     "name": "vscode-redmine",
     "displayName": "Redmine",
     "description": "Integration with VSCode and Redmine",
-    "version": "0.2.2",
+    "version": "0.3.0",
     "publisher": "rozpuszczalny",
     "license": "MIT",
     "icon": "logo.png",
@@ -18,7 +18,8 @@
     ],
     "activationEvents": [
         "onCommand:redmine.listOpenIssuesAssignedToMe",
-        "onCommand:redmine.openActionsForIssue"
+        "onCommand:redmine.openActionsForIssue",
+        "onCommand:redmine.newIssue"
     ],
     "main": "./out/extension",
     "contributes": {
@@ -28,6 +29,9 @@
         }, {
             "command": "redmine.openActionsForIssue",
             "title": "Redmine: Actions for issue"
+        }, {
+            "command": "redmine.newIssue",
+            "title": "Redmine: Create new issue"
         }],
         "configuration": {
             "title": "Redmine Integration",
@@ -54,6 +58,11 @@
                     "type": "boolean",
                     "description": "Pass rejectUnauthorized to https request options. Use only if your redmine instance has self-signed certificate!",
                     "default": "true"
+                },
+                "redmine.projectName": {
+                    "type": "string",
+                    "description": "Project name in Redmine",
+                    "default": ""
                 }
             }
         }

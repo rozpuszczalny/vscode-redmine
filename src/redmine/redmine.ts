@@ -7,6 +7,7 @@ export class Redmine {
     readonly pathIssueStatuses: () => string = () => { return "/issue_statuses.json"; };
     readonly pathTimeEntryActivities: () => string = () => { return "/enumerations/time_entry_activities.json"; };
     readonly pathTimeEntries: () => string = () => { return "/time_entries.json"; };
+    readonly pathProjects: () => string = () => { return "/projects.json"; };
 
     /**
      * URL that will be used to open link in a browser
@@ -206,6 +207,16 @@ export class Redmine {
                     }
                 })
             )
+        );
+    }
+
+    /**
+     * Returns list of projects
+     */
+    getProjects() {
+        return this.doRequest<{ projects: any[] }>(
+            this.pathProjects(),
+            "GET"
         );
     }
 }

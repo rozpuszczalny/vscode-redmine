@@ -4,6 +4,7 @@ Redmine extension for Visual Studio Code.
 
 ## Features
 
+* Create issue (opens redmine create issue in browser)
 * List of issues assigned to you
 * Open issue by id
 * Issue actions:
@@ -26,6 +27,9 @@ This extension contributes the following settings:
 * `redmine.serverIsSsl`: Should be connected through SSL or not (default: `true`)
 * `redmine.apiKey`: API Key of your redmine account (see `/my/account` page, on right-hand pane)
 * `redmine.rejectUnauthorized`: Parameter, which is passed to https request options (true/false) (useful to fix issues with self-signed certificates, see issue #3)
+* `redmine.projectName`: If set, this will be the project, to which new issue will be created.
+
+  _NOTE: this is an identifier of project, not display name of the project_
 
 ## Contribution
 
