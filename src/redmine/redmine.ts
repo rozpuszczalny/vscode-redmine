@@ -97,6 +97,12 @@ export class Redmine {
                         reject("Resource doesn't exsist");
                         return;
                     }
+
+                    if (res.statusCode >= 400) {
+                        reject(res.statusMessage);
+                        return;
+                    }
+                    
                     // TODO: Other errors handle
                     if (data.length > 0) {
                         let object = JSON.parse(data.toString('utf8'));

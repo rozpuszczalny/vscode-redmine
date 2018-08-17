@@ -11,7 +11,8 @@ export class IssueController {
                 "label": activity.name,
                 "description": "",
                 "detail": "",
-                "fullIssue": activity
+                "fullIssue": this.issue,
+                "id": activity.id
             }
         }), {
             placeHolder: "Pick an activity type"
@@ -36,6 +37,9 @@ export class IssueController {
 
             this.redmine.addTimeEntry(this.issue.id, activity.id, hours, message).then(() => {
                 vscode.window.showInformationMessage(`Time entry for issue #${this.issue.id} has been added.`);
+            },(err)=>{
+                vscode.window.showWarningMessage(err)
+                .then(() => this.setTimeEntryMessage(activity), () => this.setTimeEntryMessage(activity));
             });
         });
     }
