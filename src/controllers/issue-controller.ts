@@ -11,15 +11,15 @@ export class IssueController {
                 "label": activity.name,
                 "description": "",
                 "detail": "",
-                "fullIssue": activity
+                "fullIssue": activity,
             }
         }), {
-            placeHolder: "Pick an activity type"
-        }).then((act) => {
-            if (!act) return;
+                placeHolder: "Pick an activity type"
+            }).then((act) => {
+                if (!act) return;
 
-            this.setTimeEntryMessage(act);
-        });
+                this.setTimeEntryMessage(act);
+            });
     }
 
     setTimeEntryMessage(activity: any) {
@@ -32,10 +32,12 @@ export class IssueController {
                 return;
             }
             let hours = input.substring(0, indexOf);
-            let message = input.substring(indexOf+1);
+            let message = input.substring(indexOf + 1);
 
-            this.redmine.addTimeEntry(this.issue.id, activity.id, hours, message).then(() => {
+            this.redmine.addTimeEntry(this.issue.id, activity.fullIssue.id, hours, message).then(() => {
                 vscode.window.showInformationMessage(`Time entry for issue #${this.issue.id} has been added.`);
+            }, (reason) => {
+                vscode.window.showErrorMessage(reason);
             });
         });
     }
@@ -49,14 +51,16 @@ export class IssueController {
                 "fullIssue": status
             }
         }), {
-            placeHolder: "Pick a new status"
-        }).then((stat) => {
-            if (!stat) return;
+                placeHolder: "Pick a new status"
+            }).then((stat) => {
+                if (!stat) return;
 
-            this.redmine.setIssueStatus(this.issue, stat.fullIssue.id).then(() => {
-                vscode.window.showInformationMessage(`Issue #${this.issue.id} status changed to ${stat.fullIssue.name}`);
+                this.redmine.setIssueStatus(this.issue, stat.fullIssue.id).then(() => {
+                    vscode.window.showInformationMessage(`Issue #${this.issue.id} status changed to ${stat.fullIssue.name}`);
+                }, (reason) => {
+                    vscode.window.showErrorMessage(reason);
+                });
             });
-        });
     }
 
     private openInBrowser() {
@@ -101,18 +105,18 @@ export class IssueController {
             description: "Opens an issue in a browser (might need additional login)",
             detail: issueDetails
         }], {
-            placeHolder: "Pick an action to do"
-        }).then((option) => {
-            if (!option) return;
-            if (option.action === "openInBrowser") {
-                this.openInBrowser();
-            }
-            if (option.action === "changeStatus") {
-                this.changeStatus();
-            }
-            if (option.action === "addTimeEntry") {
-                this.addTimeEntry();
-            }
-        }, (error) => { /* ? */ })
+                placeHolder: "Pick an action to do"
+            }).then((option) => {
+                if (!option) return;
+                if (option.action === "openInBrowser") {
+                    this.openInBrowser();
+                }
+                if (option.action === "changeStatus") {
+                    this.changeStatus();
+                }
+                if (option.action === "addTimeEntry") {
+                    this.addTimeEntry();
+                }
+            }, (error) => { /* ? */ })
     }
 }
