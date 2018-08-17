@@ -34,8 +34,10 @@ export class IssueController {
             let hours = input.substring(0, indexOf);
             let message = input.substring(indexOf+1);
 
-            this.redmine.addTimeEntry(this.issue.id, activity.id, hours, message).then(() => {
+            this.redmine.addTimeEntry(this.issue.id, activity.fullIssue.id, hours, message).then(() => {
                 vscode.window.showInformationMessage(`Time entry for issue #${this.issue.id} has been added.`);
+            }, (reason) => {
+                vscode.window.showErrorMessage(reason);
             });
         });
     }
@@ -55,6 +57,8 @@ export class IssueController {
 
             this.redmine.setIssueStatus(this.issue, stat.fullIssue.id).then(() => {
                 vscode.window.showInformationMessage(`Issue #${this.issue.id} status changed to ${stat.fullIssue.name}`);
+            }, (reason) => {
+                vscode.window.showErrorMessage(reason);
             });
         });
     }
