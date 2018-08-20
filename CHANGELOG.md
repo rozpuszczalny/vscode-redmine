@@ -3,6 +3,11 @@ All notable changes to the "vscode-redmine" extension will be documented in this
 
 ## [Unreleased]
 
+## 0.3.1 - 20.08.2018
+
+### Fixed
+- Issue #7 (thanks to hanyuzhou2006 for discovering and fixing an issue!)
+
 ## 0.3.0 - 21.06.2018
 
 ### Added
