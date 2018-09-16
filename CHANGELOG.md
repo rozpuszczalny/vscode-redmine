@@ -3,6 +3,12 @@ All notable changes to the "vscode-redmine" extension will be documented in this
 
 ## [Unreleased]
 
+## 0.4.0 - 16.09.2018
+
+### Added
+- Custom `Authorization` header
+  - You can configure `Authorization` header by setting `redmine.authorization`.
+
 ## 0.3.1 - 20.08.2018
 
 ### Fixed

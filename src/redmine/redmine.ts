@@ -35,6 +35,7 @@ export class Redmine {
         public port: number,
         public isSsl: boolean,
         public apiKey: string,
+        authorization: string = null,
         public rejectUnauthorized = true) {
 
         let firstSlash = address.indexOf('/');
@@ -55,6 +56,10 @@ export class Redmine {
             },
             rejectUnauthorized: rejectUnauthorized
         };
+
+        if (authorization != null) {
+            this.options.headers["Authorization"] = authorization;
+        }
     }
 
     /**
@@ -86,7 +91,7 @@ export class Redmine {
 
                 res.on('end', () => {
                     if (res.statusCode == 401) {
-                        reject("Server returned 401 (perhaps your API Key is not valid?)");
+                        reject("Server returned 401 (perhaps your API Key is not valid, or your server has additional authentication methods?)");
                         return;
                     }
                     if (res.statusCode == 403) {

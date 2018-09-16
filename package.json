@@ -2,7 +2,7 @@
     "name": "vscode-redmine",
     "displayName": "Redmine",
     "description": "Integration with VSCode and Redmine",
-    "version": "0.3.1",
+    "version": "0.4.0",
     "publisher": "rozpuszczalny",
     "license": "MIT",
     "icon": "logo.png",
@@ -62,6 +62,11 @@
                 "redmine.projectName": {
                     "type": "string",
                     "description": "Project name in Redmine",
+                    "default": ""
+                },
+                "redmine.authorization": {
+                    "type": "string",
+                    "description": "Authorization header added to every redmine request",
                     "default": ""
                 }
             }

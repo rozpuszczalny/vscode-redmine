@@ -30,6 +30,7 @@ This extension contributes the following settings:
 * `redmine.projectName`: If set, this will be the project, to which new issue will be created.
 
   _NOTE: this is an identifier of project, not display name of the project_
+* `redmine.authorization`: Value of `Authorization` HTTP header; it'll be omitted, if not provided.
 
 ## Contribution
 

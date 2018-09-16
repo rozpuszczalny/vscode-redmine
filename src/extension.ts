@@ -25,7 +25,8 @@ export function activate(context: vscode.ExtensionContext) {
         "serverIsSsl": null,
         "apiKey": null,
         "rejectUnauthorized": true,
-        "projectName": null
+        "projectName": null,
+        "authorization": null
     };
 
     let hadErrors = false;
@@ -37,7 +38,7 @@ export function activate(context: vscode.ExtensionContext) {
         hadErrors = false;
         wsSettings = vscode.workspace.getConfiguration('redmine');
         for (let key in settings) {
-            if (key === "projectName") {
+            if (["projectName", "authorization"].indexOf(key) > -1) {
                 if (wsSettings.has(key) && wsSettings.get(key) !== "") {
                     settings[key] = wsSettings.get(key);
                 } else {
@@ -55,7 +56,7 @@ export function activate(context: vscode.ExtensionContext) {
         }
 
         if (!hadErrors) {
-            redmine = new Redmine(settings.serverUrl, settings.serverPort, settings.serverIsSsl, settings.apiKey, settings.rejectUnauthorized);
+            redmine = new Redmine(settings.serverUrl, settings.serverPort, settings.serverIsSsl, settings.apiKey, settings.authorization, settings.rejectUnauthorized);
         } else {
             redmine = null;
         }
