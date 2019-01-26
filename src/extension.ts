@@ -150,28 +150,38 @@ export function activate(context: vscode.ExtensionContext) {
         const memberships = await redmine.getMemberships(issue.issue.project.id);
         const possibleStatuses = await redmine.getIssueStatusesTyped();
 
-        const statusChoice = await vscode.window.showQuickPick(possibleStatuses.map(status => {
-            return {
-                "label": status.name,
-                "description": "",
-                "detail": "",
-                "status": status
+        const statusChoice = await vscode.window.showQuickPick(
+            possibleStatuses.map(status => {
+                return {
+                    "label": status.name,
+                    "description": "",
+                    "detail": "",
+                    "status": status
+                }
+            }),
+            {
+                placeHolder: `Current: ${issue.issue.status.name}`
             }
-        }));
+        );
         if(!statusChoice) {
             return;
         }
 
         const desiredStatus = statusChoice.status;
 
-        const assigneeChoice = await vscode.window.showQuickPick(memberships.map(membership => {
-            return {
-                "label": membership.userName,
-                "description": "",
-                "detail": "",
-                "assignee": membership
+        const assigneeChoice = await vscode.window.showQuickPick(
+            memberships.map(membership => {
+                return {
+                    "label": membership.userName,
+                    "description": "",
+                    "detail": "",
+                    "assignee": membership
+                }
+            }),
+            {
+                placeHolder: `Current: ${issue.issue.assigned_to.name}`
             }
-        }));
+        );
         if(!assigneeChoice) {
             return;
         }
