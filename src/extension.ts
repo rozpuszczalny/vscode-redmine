@@ -119,10 +119,11 @@ export function activate(context: vscode.ExtensionContext) {
 
             let promise = redmine.getIssueById(issueId);
 
-            promise.then(async (issue) => {
+            promise.then((issue) => {
                 if (!issue) return;
 
                 let controller = new IssueController(issue.issue, redmine);
+
                 controller.listActions();
             }, (error) => {
                 vscode.window.showErrorMessage(error);
