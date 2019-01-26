@@ -180,8 +180,12 @@ export function activate(context: vscode.ExtensionContext) {
         const message = await vscode.window.showInputBox({ placeHolder: "Message" });
 
         const bulkUpdate = new BulkUpdate(issueId, message, desiredAssignee, desiredStatus);
-        await redmine.applyBulkUpdate(bulkUpdate);
-        vscode.window.showInformationMessage("Issue updated");
+        const updateResult = await redmine.applyBulkUpdate(bulkUpdate);
+        if(updateResult.isSuccessful()) {
+            vscode.window.showInformationMessage("Issue updated");
+        } else {
+            vscode.window.showErrorMessage("Could not update issue", ...updateResult.differences);
+        }
     });
 
     let newIssue = vscode.commands.registerCommand('redmine.newIssue', () => {

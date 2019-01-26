@@ -1,6 +1,6 @@
 import * as https from 'https';
 import * as http from 'http';
-import { Membership, IssueStatus, BulkUpdate } from '../controllers/domain';
+import { Membership, IssueStatus, BulkUpdate, BulkUpdateResult } from '../controllers/domain';
 
 export class Redmine {
     readonly pathIssuesAssignedToMe: () => string = () => { return "/issues.json?status_id=open&assigned_to_id=me" };
@@ -264,5 +264,15 @@ export class Redmine {
                 })
             )
         );
+        const issueRequest = await this.getIssueById(bulkUpdate.issueId);
+        const issue = issueRequest.issue;
+        const updateResult = new BulkUpdateResult();
+        if(issue.assigned_to.id != bulkUpdate.assignee.userId) {
+            updateResult.addDifference("Couldn't assign user");
+        }
+        if(issue.status.id != bulkUpdate.status.statusId) {
+            updateResult.addDifference("Couldn't update status");
+        }
+        return updateResult;
     }
 }

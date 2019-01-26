@@ -14,3 +14,15 @@ export class BulkUpdate {
                 public readonly assignee: Membership,
                 public readonly status: IssueStatus) { }
 }
+
+export class BulkUpdateResult {
+    public readonly differences: string[] = [];
+
+    public isSuccessful() {
+        return this.differences.length == 0;
+    }
+
+    public addDifference(difference: string) {
+        this.differences.push(difference);
+    }
+}
