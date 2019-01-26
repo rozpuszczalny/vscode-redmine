@@ -4,7 +4,7 @@ import { IssueController } from './controllers/issue-controller';
 import * as vscode from 'vscode';
 import * as https from 'https';
 import * as http from 'http';
-import { CancellationToken, QuickPickItem } from 'vscode';
+import { CancellationToken, QuickPickItem, Selection } from 'vscode';
 
 import { Redmine } from './redmine/redmine';
 import { BulkUpdate } from './controllers/domain';
@@ -253,34 +253,28 @@ export function activate(context: vscode.ExtensionContext) {
 
 function getIssueUnderCursor() : string | null {
     const editor = vscode.window.activeTextEditor;
-    const selection = editor.selection;
-    if(selection.isEmpty) {
-            selectWord(editor);
-    }
-    const text = editor.document.getText(editor.selection);
+    const text = getIssueIdUnderCursor(editor);
     const issueId = text.replace("#", "").replace(":", "");
     if(!/^\d+$/.test(issueId)) {
-        vscode.window.showErrorMessage(`${text} is no Issue id`);
+        vscode.window.showErrorMessage("No issue selected");
         return null;
     }
     return issueId;
 }
-function selectWord(editor: vscode.TextEditor): boolean {
-    const selection = editor.selection;
-    const doc = editor.document;
-    if (selection.isEmpty) {
-        const cursorWordRange = doc.getWordRangeAtPosition(selection.active);
 
-        if (cursorWordRange) {
-            const newSe = new vscode.Selection(cursorWordRange.start.line, cursorWordRange.start.character, cursorWordRange.end.line, cursorWordRange.end.character);
-            editor.selection = newSe;
-            return true;
-
-        } else {
-            return false;
+function getIssueIdUnderCursor(editor: vscode.TextEditor): string {
+    const currentSelection = editor.selection;
+    const document = editor.document;
+    if (currentSelection.isEmpty) {
+        const cursorWordRange = document.getWordRangeAtPosition(currentSelection.active);
+        if(cursorWordRange) {
+            const newSelection = new Selection(cursorWordRange.start.line, cursorWordRange.start.character, cursorWordRange.end.line, cursorWordRange.end.character);
+            editor.selection = newSelection;
+            return editor.document.getText(newSelection);
         }
+        return "";
     } else {
-        return true;
+        return document.getText(currentSelection);
     }
 }
 
