@@ -7,6 +7,7 @@ import * as http from 'http';
 import { CancellationToken, QuickPickItem } from 'vscode';
 
 import { Redmine } from './redmine/redmine';
+import { BulkUpdate } from './controllers/domain';
 
 export interface PickItem extends QuickPickItem {
     label: string;
@@ -118,11 +119,10 @@ export function activate(context: vscode.ExtensionContext) {
 
             let promise = redmine.getIssueById(issueId);
 
-            promise.then((issue) => {
+            promise.then(async (issue) => {
                 if (!issue) return;
 
                 let controller = new IssueController(issue.issue, redmine);
-
                 controller.listActions();
             }, (error) => {
                 vscode.window.showErrorMessage(error);
@@ -135,6 +135,53 @@ export function activate(context: vscode.ExtensionContext) {
                 return promise;
             });
         });
+    });
+
+    let workflowUnderCursor = vscode.commands.registerCommand('redmine.workflowUnderCursor', async () => {
+        if (redmine == null) {
+            vscode.window.showErrorMessage(`Redmine integration: Configuration file is not complete!`);
+            return;
+        }
+
+        const issueId = getIssueUnderCursor();
+        if(!issueId) return;
+
+        const issue = await redmine.getIssueById(issueId.trim());
+        const memberships = await redmine.getMemberships(issue.issue.project.id);
+        const possibleStatuses = await redmine.getIssueStatusesTyped();
+
+        const statusChoice = await vscode.window.showQuickPick(possibleStatuses.map(status => {
+            return {
+                "label": status.name,
+                "description": "",
+                "detail": "",
+                "status": status
+            }
+        }));
+        if(!statusChoice) {
+            return;
+        }
+
+        const desiredStatus = statusChoice.status;
+
+        const assigneeChoice = await vscode.window.showQuickPick(memberships.map(membership => {
+            return {
+                "label": membership.userName,
+                "description": "",
+                "detail": "",
+                "assignee": membership
+            }
+        }));
+        if(!assigneeChoice) {
+            return;
+        }
+
+        const desiredAssignee = assigneeChoice.assignee;
+        const message = await vscode.window.showInputBox({ placeHolder: "Message" });
+
+        const bulkUpdate = new BulkUpdate(issueId, message, desiredAssignee, desiredStatus);
+        await redmine.applyBulkUpdate(bulkUpdate);
+        vscode.window.showInformationMessage("Issue updated");
     });
 
     let newIssue = vscode.commands.registerCommand('redmine.newIssue', () => {
@@ -187,6 +234,40 @@ export function activate(context: vscode.ExtensionContext) {
     context.subscriptions.push(listIssues);
     context.subscriptions.push(getIssue);
     context.subscriptions.push(newIssue);
+    context.subscriptions.push(workflowUnderCursor);
+}
+
+function getIssueUnderCursor() : string | null {
+    const editor = vscode.window.activeTextEditor;
+    const selection = editor.selection;
+    if(selection.isEmpty) {
+            selectWord(editor);
+    }
+    const text = editor.document.getText(editor.selection);
+    const issueId = text.replace("#", "").replace(":", "");
+    if(!/^\d+$/.test(issueId)) {
+        vscode.window.showErrorMessage(`${text} is no Issue id`);
+        return null;
+    }
+    return issueId;
+}
+function selectWord(editor: vscode.TextEditor): boolean {
+    const selection = editor.selection;
+    const doc = editor.document;
+    if (selection.isEmpty) {
+        const cursorWordRange = doc.getWordRangeAtPosition(selection.active);
+
+        if (cursorWordRange) {
+            const newSe = new vscode.Selection(cursorWordRange.start.line, cursorWordRange.start.character, cursorWordRange.end.line, cursorWordRange.end.character);
+            editor.selection = newSe;
+            return true;
+
+        } else {
+            return false;
+        }
+    } else {
+        return true;
+    }
 }
 
 // this method is called when your extension is deactivated

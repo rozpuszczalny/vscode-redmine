@@ -1,5 +1,6 @@
 import * as https from 'https';
 import * as http from 'http';
+import { Membership, IssueStatus, BulkUpdate } from '../controllers/domain';
 
 export class Redmine {
     readonly pathIssuesAssignedToMe: () => string = () => { return "/issues.json?status_id=open&assigned_to_id=me" };
@@ -8,6 +9,7 @@ export class Redmine {
     readonly pathTimeEntryActivities: () => string = () => { return "/enumerations/time_entry_activities.json"; };
     readonly pathTimeEntries: () => string = () => { return "/time_entries.json"; };
     readonly pathProjects: () => string = () => { return "/projects.json"; };
+    readonly pathMemberships: (projectId: string) => string = (projectId) => { return `/projects/${projectId}/memberships.json`}
 
     /**
      * URL that will be used to open link in a browser
@@ -167,6 +169,11 @@ export class Redmine {
         }
     }
 
+    async getIssueStatusesTyped(): Promise<IssueStatus[]> {
+        const statuses = await this.getIssueStatuses();
+        return statuses.issue_statuses.map(s => new IssueStatus(s.id, s.name));
+    }
+
     timeEntryActivities: { time_entry_activities: any[] } = null;
 
     /**
@@ -228,6 +235,34 @@ export class Redmine {
         return this.doRequest<{ projects: any[] }>(
             this.pathProjects(),
             "GET"
+        );
+    }
+
+    async getMemberships(projectId: string) : Promise<Membership[]> {
+        const membershipsResponse = await this.doRequest(
+            this.pathMemberships(projectId),
+            "GET"
+        ) as { memberships: any[] };
+
+        return membershipsResponse
+                .memberships
+                .filter(m => m.user)
+                .map(m => new Membership(m.user.id, m.user.name));
+    }
+
+    async applyBulkUpdate(bulkUpdate: BulkUpdate) {
+        await this.doRequest<{ issue: any }>(
+            this.pathIssue(bulkUpdate.issueId),
+            "PUT",
+            new Buffer(
+                JSON.stringify({
+                    issue: {
+                        status_id: bulkUpdate.status.statusId,
+                        assigned_to_id: bulkUpdate.assignee.userId,
+                        notes: bulkUpdate.message
+                    }
+                })
+            )
         );
     }
 }
