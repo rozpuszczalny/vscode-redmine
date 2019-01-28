@@ -1,6 +1,7 @@
 import { Redmine } from './../redmine/redmine';
 import * as vscode from 'vscode';
 import { PickItem } from '../extension';
+import { QuickUpdate as QuickUpdate } from './domain';
 
 export class IssueController {
     constructor(private issue: any, private redmine: Redmine) { }
@@ -82,6 +83,58 @@ export class IssueController {
         });
     }
 
+    private async quickUpdate() {
+        const memberships = await this.redmine.getMemberships(this.issue.project.id);
+        const possibleStatuses = await this.redmine.getIssueStatusesTyped();
+
+        const statusChoice = await vscode.window.showQuickPick(
+            possibleStatuses.map(status => {
+                return {
+                    "label": status.name,
+                    "description": "",
+                    "detail": "",
+                    "status": status
+                }
+            }),
+            {
+                placeHolder: `Current: ${this.issue.status.name}`
+            }
+        );
+        if(!statusChoice) {
+            return;
+        }
+
+        const desiredStatus = statusChoice.status;
+
+        const assigneeChoice = await vscode.window.showQuickPick(
+            memberships.map(membership => {
+                return {
+                    "label": membership.userName,
+                    "description": "",
+                    "detail": "",
+                    "assignee": membership
+                }
+            }),
+            {
+                placeHolder: `Current: ${this.issue.assigned_to.name}`
+            }
+        );
+        if(!assigneeChoice) {
+            return;
+        }
+
+        const desiredAssignee = assigneeChoice.assignee;
+        const message = await vscode.window.showInputBox({ placeHolder: "Message" });
+
+        const bulkUpdate = new QuickUpdate(this.issue.id, message, desiredAssignee, desiredStatus);
+        const updateResult = await this.redmine.applyQuickUpdate(bulkUpdate);
+        if(updateResult.isSuccessful()) {
+            vscode.window.showInformationMessage("Issue updated");
+        } else {
+            vscode.window.showErrorMessage("Issue updated partially", ...updateResult.differences);
+        }
+    }
+
     listActions() {
         let issueDetails = `Issue #${this.issue.id} assigned to ${this.issue.assigned_to ? this.issue.assigned_to.name : "no one"}`;
         vscode.window.showQuickPick<{
@@ -104,6 +157,11 @@ export class IssueController {
             label: "Open in browser",
             description: "Opens an issue in a browser (might need additional login)",
             detail: issueDetails
+        }, {
+            action: "quickUpdate",
+            label: "Quick update",
+            description: "Change assignee, status and leave a message in one step",
+            detail: issueDetails
         }], {
             placeHolder: "Pick an action to do"
         }).then((option) => {
@@ -116,6 +174,9 @@ export class IssueController {
             }
             if (option.action === "addTimeEntry") {
                 this.addTimeEntry();
+            }
+            if (option.action === "quickUpdate") {
+                this.quickUpdate();
             }
         }, (error) => { /* ? */ })
     }

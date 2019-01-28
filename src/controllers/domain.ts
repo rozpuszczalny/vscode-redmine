@@ -8,14 +8,14 @@ export class IssueStatus {
                 public readonly name: string) { }
 }
 
-export class BulkUpdate {
+export class QuickUpdate {
     constructor(public readonly issueId: string,
                 public readonly message: string,
                 public readonly assignee: Membership,
                 public readonly status: IssueStatus) { }
 }
 
-export class BulkUpdateResult {
+export class QuickUpdateResult {
     public readonly differences: string[] = [];
 
     public isSuccessful() {

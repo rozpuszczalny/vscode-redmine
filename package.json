@@ -20,8 +20,7 @@
         "onCommand:redmine.listOpenIssuesAssignedToMe",
         "onCommand:redmine.openActionsForIssue",
         "onCommand:redmine.newIssue",
-        "onCommand:redmine.openActionsForIssueUnderCursor",
-        "onCommand:redmine.workflowUnderCursor"
+        "onCommand:redmine.openActionsForIssueUnderCursor"
     ],
     "main": "./out/extension",
     "contributes": {
@@ -41,10 +40,6 @@
             {
                 "command": "redmine.openActionsForIssueUnderCursor",
                 "title": "Redmine: Actions for issue under cursor"
-            },
-            {
-                "command": "redmine.workflowUnderCursor",
-                "title": "Redmine: Workflow under cursor"
             }
         ],
         "configuration": {

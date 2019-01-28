@@ -1,6 +1,6 @@
 import * as https from 'https';
 import * as http from 'http';
-import { Membership, IssueStatus, BulkUpdate, BulkUpdateResult } from '../controllers/domain';
+import { Membership, IssueStatus, QuickUpdate, QuickUpdateResult } from '../controllers/domain';
 
 export class Redmine {
     readonly pathIssuesAssignedToMe: () => string = () => { return "/issues.json?status_id=open&assigned_to_id=me" };
@@ -250,27 +250,27 @@ export class Redmine {
                 .map(m => new Membership(m.user.id, m.user.name));
     }
 
-    async applyBulkUpdate(bulkUpdate: BulkUpdate) {
+    async applyQuickUpdate(quickUpdate: QuickUpdate) : Promise<QuickUpdateResult> {
         await this.doRequest<{ issue: any }>(
-            this.pathIssue(bulkUpdate.issueId),
+            this.pathIssue(quickUpdate.issueId),
             "PUT",
             new Buffer(
                 JSON.stringify({
                     issue: {
-                        status_id: bulkUpdate.status.statusId,
-                        assigned_to_id: bulkUpdate.assignee.userId,
-                        notes: bulkUpdate.message
+                        status_id: quickUpdate.status.statusId,
+                        assigned_to_id: quickUpdate.assignee.userId,
+                        notes: quickUpdate.message
                     }
                 })
             )
         );
-        const issueRequest = await this.getIssueById(bulkUpdate.issueId);
+        const issueRequest = await this.getIssueById(quickUpdate.issueId);
         const issue = issueRequest.issue;
-        const updateResult = new BulkUpdateResult();
-        if(issue.assigned_to.id != bulkUpdate.assignee.userId) {
+        const updateResult = new QuickUpdateResult();
+        if(issue.assigned_to.id != quickUpdate.assignee.userId) {
             updateResult.addDifference("Couldn't assign user");
         }
-        if(issue.status.id != bulkUpdate.status.statusId) {
+        if(issue.status.id != quickUpdate.status.statusId) {
             updateResult.addDifference("Couldn't update status");
         }
         return updateResult;

@@ -2,12 +2,9 @@ import { IssueController } from './controllers/issue-controller';
 'use strict';
 
 import * as vscode from 'vscode';
-import * as https from 'https';
-import * as http from 'http';
-import { CancellationToken, QuickPickItem, Selection } from 'vscode';
+import { QuickPickItem, Selection } from 'vscode';
 
 import { Redmine } from './redmine/redmine';
-import { BulkUpdate } from './controllers/domain';
 
 export interface PickItem extends QuickPickItem {
     label: string;
@@ -156,67 +153,6 @@ export function activate(context: vscode.ExtensionContext) {
         }
     });
 
-    let workflowUnderCursor = vscode.commands.registerCommand('redmine.workflowUnderCursor', async () => {
-        if (redmine == null) {
-            vscode.window.showErrorMessage(`Redmine integration: Configuration file is not complete!`);
-            return;
-        }
-
-        const issueId = getIssueIdUnderCursor();
-        if(!issueId) return;
-
-        const issue = await redmine.getIssueById(issueId.trim());
-        const memberships = await redmine.getMemberships(issue.issue.project.id);
-        const possibleStatuses = await redmine.getIssueStatusesTyped();
-
-        const statusChoice = await vscode.window.showQuickPick(
-            possibleStatuses.map(status => {
-                return {
-                    "label": status.name,
-                    "description": "",
-                    "detail": "",
-                    "status": status
-                }
-            }),
-            {
-                placeHolder: `Current: ${issue.issue.status.name}`
-            }
-        );
-        if(!statusChoice) {
-            return;
-        }
-
-        const desiredStatus = statusChoice.status;
-
-        const assigneeChoice = await vscode.window.showQuickPick(
-            memberships.map(membership => {
-                return {
-                    "label": membership.userName,
-                    "description": "",
-                    "detail": "",
-                    "assignee": membership
-                }
-            }),
-            {
-                placeHolder: `Current: ${issue.issue.assigned_to.name}`
-            }
-        );
-        if(!assigneeChoice) {
-            return;
-        }
-
-        const desiredAssignee = assigneeChoice.assignee;
-        const message = await vscode.window.showInputBox({ placeHolder: "Message" });
-
-        const bulkUpdate = new BulkUpdate(issueId, message, desiredAssignee, desiredStatus);
-        const updateResult = await redmine.applyBulkUpdate(bulkUpdate);
-        if(updateResult.isSuccessful()) {
-            vscode.window.showInformationMessage("Issue updated");
-        } else {
-            vscode.window.showErrorMessage("Could not update issue", ...updateResult.differences);
-        }
-    });
-
     let newIssue = vscode.commands.registerCommand('redmine.newIssue', () => {
         if (redmine == null) {
             vscode.window.showErrorMessage(`Redmine integration: Configuration file is not complete!`);
@@ -268,7 +204,6 @@ export function activate(context: vscode.ExtensionContext) {
     context.subscriptions.push(getIssue);
     context.subscriptions.push(newIssue);
     context.subscriptions.push(issueUnderCursor);
-    context.subscriptions.push(workflowUnderCursor);
 }
 
 function getIssueIdUnderCursor() : string | null {
