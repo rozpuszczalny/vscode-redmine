@@ -20,6 +20,7 @@
         "onCommand:redmine.listOpenIssuesAssignedToMe",
         "onCommand:redmine.openActionsForIssue",
         "onCommand:redmine.newIssue",
+        "onCommand:redmine.openActionsForIssueUnderCursor",
         "onCommand:redmine.workflowUnderCursor"
     ],
     "main": "./out/extension",
@@ -36,6 +37,10 @@
             {
                 "command": "redmine.newIssue",
                 "title": "Redmine: Create new issue"
+            },
+            {
+                "command": "redmine.openActionsForIssueUnderCursor",
+                "title": "Redmine: Actions for issue under cursor"
             },
             {
                 "command": "redmine.workflowUnderCursor",

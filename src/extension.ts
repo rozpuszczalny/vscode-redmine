@@ -138,13 +138,31 @@ export function activate(context: vscode.ExtensionContext) {
         });
     });
 
+    let issueUnderCursor = vscode.commands.registerCommand('redmine.openActionsForIssueUnderCursor', async () => {
+        if (redmine == null) {
+            vscode.window.showErrorMessage(`Redmine integration: Configuration file is not complete!`);
+            return;
+        }
+
+        const issueId = getIssueIdUnderCursor();
+        if(!issueId) return;
+
+        try {
+            const issue = await redmine.getIssueById(issueId);
+            const controller = new IssueController(issue.issue, redmine);
+            controller.listActions();
+        } catch (error) {
+            vscode.window.showErrorMessage(error);
+        }
+    });
+
     let workflowUnderCursor = vscode.commands.registerCommand('redmine.workflowUnderCursor', async () => {
         if (redmine == null) {
             vscode.window.showErrorMessage(`Redmine integration: Configuration file is not complete!`);
             return;
         }
 
-        const issueId = getIssueUnderCursor();
+        const issueId = getIssueIdUnderCursor();
         if(!issueId) return;
 
         const issue = await redmine.getIssueById(issueId.trim());
@@ -249,12 +267,13 @@ export function activate(context: vscode.ExtensionContext) {
     context.subscriptions.push(listIssues);
     context.subscriptions.push(getIssue);
     context.subscriptions.push(newIssue);
+    context.subscriptions.push(issueUnderCursor);
     context.subscriptions.push(workflowUnderCursor);
 }
 
-function getIssueUnderCursor() : string | null {
+function getIssueIdUnderCursor() : string | null {
     const editor = vscode.window.activeTextEditor;
-    const text = getIssueIdUnderCursor(editor);
+    const text = getTextUnderCursor(editor);
     const issueId = text.replace("#", "").replace(":", "");
     if(!/^\d+$/.test(issueId)) {
         vscode.window.showErrorMessage("No issue selected");
@@ -263,7 +282,7 @@ function getIssueUnderCursor() : string | null {
     return issueId;
 }
 
-function getIssueIdUnderCursor(editor: vscode.TextEditor): string {
+function getTextUnderCursor(editor: vscode.TextEditor): string {
     const currentSelection = editor.selection;
     const document = editor.document;
     if (currentSelection.isEmpty) {
