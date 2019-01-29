@@ -131,7 +131,7 @@ export class IssueController {
         if(updateResult.isSuccessful()) {
             vscode.window.showInformationMessage("Issue updated");
         } else {
-            vscode.window.showErrorMessage("Issue updated partially", ...updateResult.differences);
+            vscode.window.showErrorMessage(`Issue updated partially; problems: \n${updateResult.differences.join('\t\n')}`);
         }
     }
 
