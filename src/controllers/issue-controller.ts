@@ -126,8 +126,8 @@ export class IssueController {
         const desiredAssignee = assigneeChoice.assignee;
         const message = await vscode.window.showInputBox({ placeHolder: "Message" });
 
-        const bulkUpdate = new QuickUpdate(this.issue.id, message, desiredAssignee, desiredStatus);
-        const updateResult = await this.redmine.applyQuickUpdate(bulkUpdate);
+        const quickUpdate = new QuickUpdate(this.issue.id, message, desiredAssignee, desiredStatus);
+        const updateResult = await this.redmine.applyQuickUpdate(quickUpdate);
         if(updateResult.isSuccessful()) {
             vscode.window.showInformationMessage("Issue updated");
         } else {
