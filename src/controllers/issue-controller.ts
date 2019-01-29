@@ -1,7 +1,7 @@
 import { Redmine } from './../redmine/redmine';
 import * as vscode from 'vscode';
 import { PickItem } from '../extension';
-import { QuickUpdate as QuickUpdate } from './domain';
+import { QuickUpdate as QuickUpdate, Membership, IssueStatus } from './domain';
 
 export class IssueController {
     constructor(private issue: any, private redmine: Redmine) { }
@@ -84,8 +84,21 @@ export class IssueController {
     }
 
     private async quickUpdate() {
-        const memberships = await this.redmine.getMemberships(this.issue.project.id);
-        const possibleStatuses = await this.redmine.getIssueStatusesTyped();
+        let memberships: Membership[];
+        try {
+            memberships = await this.redmine.getMemberships(this.issue.project.id);
+        } catch(error) {
+            vscode.window.showErrorMessage(`Could not get memberships of project ${this.issue.project.name}`);
+            return;
+        }
+
+        let possibleStatuses: IssueStatus[];
+        try {
+            possibleStatuses = await this.redmine.getIssueStatusesTyped();
+        } catch(error) {
+            vscode.window.showErrorMessage('Could not get possible issue statuses');
+            return;
+        }
 
         const statusChoice = await vscode.window.showQuickPick(
             possibleStatuses.map(status => {
@@ -127,11 +140,16 @@ export class IssueController {
         const message = await vscode.window.showInputBox({ placeHolder: "Message" });
 
         const quickUpdate = new QuickUpdate(this.issue.id, message, desiredAssignee, desiredStatus);
-        const updateResult = await this.redmine.applyQuickUpdate(quickUpdate);
-        if(updateResult.isSuccessful()) {
-            vscode.window.showInformationMessage("Issue updated");
-        } else {
-            vscode.window.showErrorMessage(`Issue updated partially; problems: \n${updateResult.differences.join('\t\n')}`);
+
+        try {
+            const updateResult = await this.redmine.applyQuickUpdate(quickUpdate);
+            if(updateResult.isSuccessful()) {
+                vscode.window.showInformationMessage("Issue updated");
+            } else {
+                vscode.window.showErrorMessage(`Issue updated partially; problems: \n${updateResult.differences.join('\t\n')}`);
+            }
+        } catch(error) {
+            vscode.window.showErrorMessage(`Error while applying quick update: ${error}`);
         }
     }
 
