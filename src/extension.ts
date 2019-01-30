@@ -2,9 +2,7 @@ import { IssueController } from './controllers/issue-controller';
 'use strict';
 
 import * as vscode from 'vscode';
-import * as https from 'https';
-import * as http from 'http';
-import { CancellationToken, QuickPickItem } from 'vscode';
+import { QuickPickItem, Selection } from 'vscode';
 
 import { Redmine } from './redmine/redmine';
 
@@ -137,6 +135,24 @@ export function activate(context: vscode.ExtensionContext) {
         });
     });
 
+    let issueUnderCursor = vscode.commands.registerCommand('redmine.openActionsForIssueUnderCursor', async () => {
+        if (redmine == null) {
+            vscode.window.showErrorMessage(`Redmine integration: Configuration file is not complete!`);
+            return;
+        }
+
+        const issueId = getIssueIdUnderCursor();
+        if(!issueId) return;
+
+        try {
+            const issue = await redmine.getIssueById(issueId);
+            const controller = new IssueController(issue.issue, redmine);
+            controller.listActions();
+        } catch (error) {
+            vscode.window.showErrorMessage(error);
+        }
+    });
+
     let newIssue = vscode.commands.registerCommand('redmine.newIssue', () => {
         if (redmine == null) {
             vscode.window.showErrorMessage(`Redmine integration: Configuration file is not complete!`);
@@ -187,6 +203,34 @@ export function activate(context: vscode.ExtensionContext) {
     context.subscriptions.push(listIssues);
     context.subscriptions.push(getIssue);
     context.subscriptions.push(newIssue);
+    context.subscriptions.push(issueUnderCursor);
+}
+
+function getIssueIdUnderCursor() : string | null {
+    const editor = vscode.window.activeTextEditor;
+    const text = getTextUnderCursor(editor);
+    const issueId = text.replace("#", "").replace(":", "");
+    if(!/^\d+$/.test(issueId)) {
+        vscode.window.showErrorMessage("No issue selected");
+        return null;
+    }
+    return issueId;
+}
+
+function getTextUnderCursor(editor: vscode.TextEditor): string {
+    const currentSelection = editor.selection;
+    const document = editor.document;
+    if (currentSelection.isEmpty) {
+        const cursorWordRange = document.getWordRangeAtPosition(currentSelection.active);
+        if(cursorWordRange) {
+            const newSelection = new Selection(cursorWordRange.start.line, cursorWordRange.start.character, cursorWordRange.end.line, cursorWordRange.end.character);
+            editor.selection = newSelection;
+            return editor.document.getText(newSelection);
+        }
+        return "";
+    } else {
+        return document.getText(currentSelection);
+    }
 }
 
 // this method is called when your extension is deactivated

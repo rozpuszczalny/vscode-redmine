@@ -19,20 +19,29 @@
     "activationEvents": [
         "onCommand:redmine.listOpenIssuesAssignedToMe",
         "onCommand:redmine.openActionsForIssue",
-        "onCommand:redmine.newIssue"
+        "onCommand:redmine.newIssue",
+        "onCommand:redmine.openActionsForIssueUnderCursor"
     ],
     "main": "./out/extension",
     "contributes": {
-        "commands": [{
-            "command": "redmine.listOpenIssuesAssignedToMe",
-            "title": "Redmine: List open issues assigned to me"
-        }, {
-            "command": "redmine.openActionsForIssue",
-            "title": "Redmine: Actions for issue"
-        }, {
-            "command": "redmine.newIssue",
-            "title": "Redmine: Create new issue"
-        }],
+        "commands": [
+            {
+                "command": "redmine.listOpenIssuesAssignedToMe",
+                "title": "Redmine: List open issues assigned to me"
+            },
+            {
+                "command": "redmine.openActionsForIssue",
+                "title": "Redmine: Actions for issue"
+            },
+            {
+                "command": "redmine.newIssue",
+                "title": "Redmine: Create new issue"
+            },
+            {
+                "command": "redmine.openActionsForIssueUnderCursor",
+                "title": "Redmine: Actions for issue under cursor"
+            }
+        ],
         "configuration": {
             "title": "Redmine Integration",
             "properties": {
