@@ -7,10 +7,12 @@ Redmine extension for Visual Studio Code.
 * Create issue (opens redmine create issue in browser)
 * List of issues assigned to you
 * Open issue by id
+* Open issue by selected number in document
 * Issue actions:
   * Change status of an issue
   * Add time entry to an issue
   * Open issue in browser
+  * Quick update issue
 
 _Missing a feature? Open an issue and let me know!_
 
