@@ -3,6 +3,15 @@ All notable changes to the "vscode-redmine" extension will be documented in this
 
 ## [Unreleased]
 
+## 0.5.0 - 30.01.2019
+
+### Added
+
+Thanks to **[MarkusAmshove](https://github.com/MarkusAmshove)**:
+- Quick update action for issue
+  - You can quickly change issue status, assigned and add note
+- Open issue actions from number selected in document
+
 ## 0.4.0 - 16.09.2018
 
 ### Added
@@ -12,7 +21,7 @@ All notable changes to the "vscode-redmine" extension will be documented in this
 ## 0.3.1 - 20.08.2018
 
 ### Fixed
-- Issue #7 (thanks to hanyuzhou2006 for discovering and fixing an issue!)
+- [Issue #7](https://github.com/rozpuszczalny/vscode-redmine/issues/7) (thanks to **[hanyuzhou2006](https://github.com/hanyuzhou2006)** for discovering and fixing an issue!)
 
 ## 0.3.0 - 21.06.2018
 
