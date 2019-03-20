@@ -3,6 +3,12 @@ All notable changes to the "vscode-redmine" extension will be documented in this
 
 ## [Unreleased]
 
+## 0.5.1 - 30.01.2019
+
+### Changed
+
+- Updated README.md with new features description
+
 ## 0.5.0 - 30.01.2019
 
 ### Added
