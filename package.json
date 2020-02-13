@@ -45,38 +45,39 @@
         "configuration": {
             "title": "Redmine Integration",
             "properties": {
-                "redmine.serverUrl": {
+                "redmine.url": {
                     "type": "string",
-                    "description": "URL of Redmine"
-                },
-                "redmine.serverPort": {
-                    "type": "number",
-                    "default": 443,
-                    "description": "Port of Redmine"
-                },
-                "redmine.serverIsSsl": {
-                    "type": "boolean",
-                    "default": "true",
-                    "description": "Should connect through SSL or not"
+                    "description": "URL of Redmine",
+                    "examples": [
+                        "https://example.com",
+                        "http://example.com:8080",
+                        "https://example.com:8443/redmine",
+                        "http://example.com/redmine"
+                    ],
+                    "scope": "resource"
                 },
                 "redmine.apiKey": {
                     "type": "string",
-                    "description": "API Key"
+                    "description": "API Key",
+                    "scope": "resource"
                 },
                 "redmine.rejectUnauthorized": {
                     "type": "boolean",
                     "description": "Pass rejectUnauthorized to https request options. Use only if your redmine instance has self-signed certificate!",
-                    "default": "true"
+                    "default": "false",
+                    "scope": "resource"
                 },
-                "redmine.projectName": {
+                "redmine.identifier": {
                     "type": "string",
-                    "description": "Project name in Redmine",
-                    "default": ""
+                    "description": "Project identifier in Redmine",
+                    "default": "",
+                    "scope": "resource"
                 },
-                "redmine.authorization": {
-                    "type": "string",
-                    "description": "Authorization header added to every redmine request",
-                    "default": ""
+                "redmine.additionalHeaders": {
+                    "type": "object",
+                    "description": "Additional headers",
+                    "default": {},
+                    "scope": "resource"
                 }
             }
         }
