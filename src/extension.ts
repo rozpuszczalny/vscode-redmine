@@ -1,238 +1,99 @@
-import { IssueController } from './controllers/issue-controller';
-'use strict';
-
-import * as vscode from 'vscode';
-import { QuickPickItem, Selection } from 'vscode';
-
-import { Redmine } from './redmine/redmine';
-
-export interface PickItem extends QuickPickItem {
-    label: string;
-    description: string;
-    detail: string;
-    fullIssue?: any;
-    [key: string]: any;
-}
+import * as vscode from "vscode";
+import { RedmineServer } from "./redmine/redmine-server";
+import { RedmineProject } from "./redmine/redmine-project";
+import openActionsForIssue from "./commands/open-actions-for-issue";
+import openActionsForIssueUnderCursor from "./commands/open-actions-for-issue-under-cursor";
+import listOpenIssuesAssignedToMe from "./commands/list-open-issues-assigned-to-me";
+import newIssue from "./commands/new-issue";
+import { RedmineConfig } from "./definitions/redmine-config";
+import { ActionProperties } from "./commands/action-properties";
 
 export function activate(context: vscode.ExtensionContext) {
-    let redmine: Redmine = null;
+  const bucket = {
+    servers: [] as RedmineServer[],
+    projects: [] as RedmineProject[]
+  };
 
-    let settings = {
-        "serverUrl": null,
-        "serverPort": null,
-        "serverIsSsl": null,
-        "apiKey": null,
-        "rejectUnauthorized": true,
-        "projectName": null,
-        "authorization": null
-    };
-
-    let hadErrors = false;
-
-    // TODO: Change this poor settings management system
-    let wsSettings: vscode.WorkspaceConfiguration = vscode.workspace.getConfiguration('redmine');
-
-    let configUpdate = () => {
-        hadErrors = false;
-        wsSettings = vscode.workspace.getConfiguration('redmine');
-        for (let key in settings) {
-            if (["projectName", "authorization"].indexOf(key) > -1) {
-                if (wsSettings.has(key) && wsSettings.get(key) !== "") {
-                    settings[key] = wsSettings.get(key);
-                } else {
-                    settings[key] = null;
-                }
-
-                continue;
-            }
-            if (!wsSettings.has(key) || (wsSettings.get(key) === "")) {
-                vscode.window.showErrorMessage(`Redmine integration: ${key} is required`);
-                hadErrors = true;
-            } else {
-                settings[key] = wsSettings.get(key);
-            }
-        }
-
-        if (!hadErrors) {
-            redmine = new Redmine(settings.serverUrl, settings.serverPort, settings.serverIsSsl, settings.apiKey, settings.authorization, settings.rejectUnauthorized);
-        } else {
-            redmine = null;
-        }
-    };
-
-    configUpdate();
-
-    vscode.workspace.onDidChangeConfiguration(configUpdate, null, context.subscriptions);
-
-    let listIssues = vscode.commands.registerCommand('redmine.listOpenIssuesAssignedToMe', () => {
-        if (redmine == null) {
-            vscode.window.showErrorMessage(`Redmine integration: Configuration file is not complete!`);
-            return;
-        }
-
-        let promise = redmine.getIssuesAssignedToMe();
-
-        promise.then((issues) => {
-            vscode.window.showQuickPick<PickItem>(issues.issues.map((issue) => {
-                return {
-                    "label": `[${issue.tracker.name}] (${issue.status.name}) ${issue.subject} by ${issue.author.name}`,
-                    "description": issue.description.split("\n").join(" ").split("\r").join(""),
-                    "detail": `Issue #${issue.id} assigned to ${issue.assigned_to ? issue.assigned_to.name : "no one"}`,
-                    "fullIssue": issue
-                }
-            })).then((issue) => {
-                if (issue === undefined) return;
-
-                let controller = new IssueController(issue.fullIssue, redmine);
-
-                controller.listActions();
-            })
-        }, (error) => {
-            vscode.window.showErrorMessage(error);
-        })
-
-        vscode.window.withProgress({
-            location: vscode.ProgressLocation.Window
-        }, (progress) => {
-            progress.report({ "message": `Waiting for response from ${redmine.host}...` });
-            return promise;
+  const parseConfiguration = () => {
+    return vscode.window
+      .showWorkspaceFolderPick()
+      .then(v => {
+        const config = vscode.workspace.getConfiguration("redmine", v.uri) as unknown as RedmineConfig;
+        const redmineServer = new RedmineServer({
+          address: config.url,
+          key: config.apiKey
         });
-    });
 
-    let getIssue = vscode.commands.registerCommand('redmine.openActionsForIssue', () => {
-        if (redmine == null) {
-            vscode.window.showErrorMessage(`Redmine integration: Configuration file is not complete!`);
-            return;
+        const server =
+          bucket.servers.find(s => s.compare(redmineServer)) || redmineServer;
+
+        return {
+          server,
+          config
+        };
+      })
+      .then(
+        s => s,
+        err => {
+          console.log(err);
+          throw err;
         }
+      );
+  };
 
-        vscode.window.showInputBox({
-            placeHolder: `Type in issue id`
-        }).then((issueId) => {
-            if (!issueId) return;
-            if (!issueId.trim()) {
-                // Warning message
-                return;
-            }
+  const currentConfig = vscode.workspace.getConfiguration("redmine");
 
-            let promise = redmine.getIssueById(issueId);
+  if (currentConfig.has("serverUrl")) {
+    const panel = vscode.window.createWebviewPanel(
+      "redmineConfigurationUpdate",
+      "vscode-redmine: New configuration arrived!",
+      vscode.ViewColumn.One,
+      {}
+    );
 
-            promise.then((issue) => {
-                if (!issue) return;
+    panel.webview.html = `<!DOCTYPE html>
+    <html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <meta http-equiv="X-UA-Compatible" content="ie=edge">
+        <title>vscode-redmine: New configuration arrived!</title>
+        <style>html, body { font-size: 16px; } p, li { line-height: 1.5; }</style>
+    </head>
+    <body>
+        <h1>vscode-redmine: New configuration arrived!</h1>
+        <p>Thanks for using <code>vscode-redmine</code>! From version 1.0.0, an old configuration schema has changed. We've detected, that you still use old format, so please update it to the new one.</p>
+        <p>
+            Following changed:
+            <ul>
+                <li><code>redmine.serverUrl</code>, <code>redmine.serverPort</code> and <code>redmine.serverIsSsl</code> became single setting: <code>redmine.url</code>.<br />
+                If you had <code>serverUrl = 'example.com/test'</code>, <code>serverPort = 8080</code> and <code>serverIsSsl = true</code>, then new <code>url</code> will be <code>https://example.com:8080/test</code>.</li>
+                <li><code>redmine.projectName</code> became <code>redmine.identifier</code>. Behavior remains the same</li>
+                <li><code>redmine.authorization</code> is deprecated. If you want to add <code>Authorization</code> header to every request sent to redmine, provide <code>redmine.additionalHeaders</code>, eg.:
+                    <pre>{"redmine.additionalHeaders": {"Authorization": "Basic 123qwe"}}</pre>
+                </li>
+            </ul>
+        </p>
+    </body>
+    </html>`;
+  }
 
-                let controller = new IssueController(issue.issue, redmine);
+  const registerCommand = (name: string, action: (props: ActionProperties) => any) => {
+    context.subscriptions.push(
+      vscode.commands.registerCommand(`redmine.${name}`, () => {
+        parseConfiguration().then(action);
+      })
+    );
+  };
 
-                controller.listActions();
-            }, (error) => {
-                vscode.window.showErrorMessage(error);
-            })
-
-            vscode.window.withProgress({
-                location: vscode.ProgressLocation.Window
-            }, (progress) => {
-                progress.report({ "message": `Waiting for response from ${redmine.host}...` });
-                return promise;
-            });
-        });
-    });
-
-    let issueUnderCursor = vscode.commands.registerCommand('redmine.openActionsForIssueUnderCursor', async () => {
-        if (redmine == null) {
-            vscode.window.showErrorMessage(`Redmine integration: Configuration file is not complete!`);
-            return;
-        }
-
-        const issueId = getIssueIdUnderCursor();
-        if(!issueId) return;
-
-        try {
-            const issue = await redmine.getIssueById(issueId);
-            const controller = new IssueController(issue.issue, redmine);
-            controller.listActions();
-        } catch (error) {
-            vscode.window.showErrorMessage(error);
-        }
-    });
-
-    let newIssue = vscode.commands.registerCommand('redmine.newIssue', () => {
-        if (redmine == null) {
-            vscode.window.showErrorMessage(`Redmine integration: Configuration file is not complete!`);
-            return;
-        }
-
-        const open = (projectName: string) => {
-            vscode.commands.executeCommand("vscode.open", vscode.Uri.parse(`${redmine.url}/projects/${projectName}/issues/new`)).then((success) => {
-            }, (reason) => {
-                vscode.window.showErrorMessage(reason);
-            });
-        }
-
-        if (settings.projectName === null) {
-            let promise = redmine.getProjects();
-    
-            promise.then((projects) => {
-                vscode.window.showQuickPick<PickItem>(projects.projects.map((project) => {
-                    return {
-                        "label": `${project.name}`,
-                        "description": project.description.split("\n").join(" ").split("\r").join(""),
-                        "detail": `${project.identifier}`,
-                        "identifier": project.identifier
-                    }
-                }), {
-                    placeHolder: "Choose project to create issue in"
-                }).then((project) => {
-                    if (project === undefined) return;
-                    open(project.identifier);
-                })
-            }, (error) => {
-                vscode.window.showErrorMessage(error);
-            })
-    
-            vscode.window.withProgress({
-                location: vscode.ProgressLocation.Window
-            }, (progress) => {
-                progress.report({ "message": `Waiting for response from ${redmine.host}...` });
-                return promise;
-            });
-        } else {
-            open(settings.projectName);
-        }
-
-
-    });
-
-    context.subscriptions.push(listIssues);
-    context.subscriptions.push(getIssue);
-    context.subscriptions.push(newIssue);
-    context.subscriptions.push(issueUnderCursor);
-}
-
-function getIssueIdUnderCursor() : string | null {
-    const editor = vscode.window.activeTextEditor;
-    const text = getTextUnderCursor(editor);
-    const issueId = text.replace("#", "").replace(":", "");
-    if(!/^\d+$/.test(issueId)) {
-        vscode.window.showErrorMessage("No issue selected");
-        return null;
-    }
-    return issueId;
-}
-
-function getTextUnderCursor(editor: vscode.TextEditor): string {
-    const currentSelection = editor.selection;
-    const document = editor.document;
-    if (currentSelection.isEmpty) {
-        const cursorWordRange = document.getWordRangeAtPosition(currentSelection.active);
-        if(cursorWordRange) {
-            const newSelection = new Selection(cursorWordRange.start.line, cursorWordRange.start.character, cursorWordRange.end.line, cursorWordRange.end.character);
-            editor.selection = newSelection;
-            return editor.document.getText(newSelection);
-        }
-        return "";
-    } else {
-        return document.getText(currentSelection);
-    }
+  registerCommand("listOpenIssuesAssignedToMe", listOpenIssuesAssignedToMe);
+  registerCommand("openActionsForIssue", openActionsForIssue);
+  registerCommand(
+    "openActionsForIssueUnderCursor",
+    openActionsForIssueUnderCursor
+  );
+  registerCommand("newIssue", newIssue);
 }
 
 // this method is called when your extension is deactivated
-export function deactivate() {
-}
+export function deactivate() {}
