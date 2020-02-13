@@ -24,15 +24,13 @@ It's required to enable REST web services in `/settings?tab=api` of your redmine
 
 This extension contributes the following settings:
 
-* `redmine.serverUrl`: URL of redmine server (eg. `redmine.example.com`, `example.com/redmine` _etc._)
-* `redmine.serverPort`: Port of redmine server (default: `443`)
-* `redmine.serverIsSsl`: Should be connected through SSL or not (default: `true`)
+* `redmine.url`: URL of redmine server (eg. `https://example.com`, `http://example.com:8080`, `https://example.com:8443/redmine`, `http://example.com/redmine` _etc._)
 * `redmine.apiKey`: API Key of your redmine account (see `/my/account` page, on right-hand pane)
 * `redmine.rejectUnauthorized`: Parameter, which is passed to https request options (true/false) (useful to fix issues with self-signed certificates, see issue #3)
-* `redmine.projectName`: If set, this will be the project, to which new issue will be created.
+* `redmine.identifier`: If set, this will be the project, to which new issue will be created
 
   _NOTE: this is an identifier of project, not display name of the project_
-* `redmine.authorization`: Value of `Authorization` HTTP header; it'll be omitted, if not provided.
+* `redmine.additionalHeaders`: Object of additional headers to be sent along with every request to redmine server
 
 ## Contribution
 
