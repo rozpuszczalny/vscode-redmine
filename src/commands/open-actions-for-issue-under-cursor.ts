@@ -1,4 +1,3 @@
-import { RedmineServer } from "../redmine/redmine-server";
 import * as vscode from "vscode";
 import openActionsForIssueId from "./commons/open-actions-for-issue-id";
 import { ActionProperties } from "./action-properties";

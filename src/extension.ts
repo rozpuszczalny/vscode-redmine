@@ -8,7 +8,7 @@ import newIssue from "./commands/new-issue";
 import { RedmineConfig } from "./definitions/redmine-config";
 import { ActionProperties } from "./commands/action-properties";
 
-export function activate(context: vscode.ExtensionContext) {
+export function activate(context: vscode.ExtensionContext): void {
   const bucket = {
     servers: [] as RedmineServer[],
     projects: [] as RedmineProject[],
@@ -83,7 +83,7 @@ export function activate(context: vscode.ExtensionContext) {
 
   const registerCommand = (
     name: string,
-    action: (props: ActionProperties) => any
+    action: (props: ActionProperties) => void
   ) => {
     context.subscriptions.push(
       vscode.commands.registerCommand(`redmine.${name}`, () => {
@@ -102,4 +102,5 @@ export function activate(context: vscode.ExtensionContext) {
 }
 
 // this method is called when your extension is deactivated
-export function deactivate() {}
+// eslint-disable-next-line @typescript-eslint/no-empty-function
+export function deactivate(): void {}

@@ -1,18 +1,17 @@
-import { RedmineServer } from "../redmine/redmine-server";
 import * as vscode from "vscode";
 import { IssueController } from "../controllers/issue-controller";
 import { ActionProperties } from "./action-properties";
+import { Issue } from "../redmine/models/issue";
 
 export interface PickItem extends vscode.QuickPickItem {
   label: string;
   description: string;
   detail: string;
-  fullIssue?: any;
-  [key: string]: any;
+  fullIssue: Issue;
 }
 
 export default async ({ server }: ActionProperties) => {
-  let promise = server.getIssuesAssignedToMe();
+  const promise = server.getIssuesAssignedToMe();
 
   promise.then(
     (issues) => {
@@ -36,7 +35,7 @@ export default async ({ server }: ActionProperties) => {
         .then((issue) => {
           if (issue === undefined) return;
 
-          let controller = new IssueController(issue.fullIssue, server);
+          const controller = new IssueController(issue.fullIssue, server);
 
           controller.listActions();
         });

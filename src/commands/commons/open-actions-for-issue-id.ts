@@ -7,13 +7,13 @@ export default async (server: RedmineServer, issueId: string) => {
     return;
   }
 
-  let promise = server.getIssueById(issueId);
+  const promise = server.getIssueById(issueId);
 
   promise.then(
     (issue) => {
       if (!issue) return;
 
-      let controller = new IssueController(issue.issue, server);
+      const controller = new IssueController(issue.issue, server);
 
       controller.listActions();
     },

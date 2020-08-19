@@ -1,11 +1,18 @@
 import * as vscode from "vscode";
 import { QuickUpdate, Membership, IssueStatus } from "./domain";
 import { RedmineServer } from "../redmine/redmine-server";
+import { Issue } from "../redmine/models/issue";
+import { IssueStatus as RedmineIssueStatus } from "../redmine/models/issue-status";
+import { TimeEntryActivity } from "../redmine/models/time-entry-activity";
+
+interface TimeEntryActivityItem extends vscode.QuickPickItem {
+  activity: TimeEntryActivity;
+}
 
 export class IssueController {
-  constructor(private issue: any, private redmine: RedmineServer) {}
+  constructor(private issue: Issue, private redmine: RedmineServer) {}
 
-  chooseTimeEntryType(activities: any[]) {
+  chooseTimeEntryType(activities: TimeEntryActivity[]) {
     vscode.window
       .showQuickPick(
         activities.map((activity) => {
@@ -13,7 +20,7 @@ export class IssueController {
             label: activity.name,
             description: "",
             detail: "",
-            fullIssue: activity,
+            activity: activity,
           };
         }),
         {
@@ -27,13 +34,13 @@ export class IssueController {
       });
   }
 
-  setTimeEntryMessage(activity: any) {
+  setTimeEntryMessage(activity: TimeEntryActivityItem) {
     vscode.window
       .showInputBox({
         placeHolder: `"hours spent|additional message" or "hours spent|"`,
       })
       .then((input) => {
-        let indexOf = input.indexOf("|");
+        const indexOf = input.indexOf("|");
         if (indexOf === -1) {
           vscode.window
             .showWarningMessage(
@@ -45,11 +52,11 @@ export class IssueController {
             );
           return;
         }
-        let hours = input.substring(0, indexOf);
-        let message = input.substring(indexOf + 1);
+        const hours = input.substring(0, indexOf);
+        const message = input.substring(indexOf + 1);
 
         this.redmine
-          .addTimeEntry(this.issue.id, activity.fullIssue.id, hours, message)
+          .addTimeEntry(this.issue.id, activity.activity.id, hours, message)
           .then(
             () => {
               vscode.window.showInformationMessage(
@@ -63,7 +70,7 @@ export class IssueController {
       });
   }
 
-  changeIssueStatus(statuses: any[]) {
+  changeIssueStatus(statuses: RedmineIssueStatus[]) {
     vscode.window
       .showQuickPick(
         statuses.map((status) => {
@@ -102,12 +109,9 @@ export class IssueController {
           `${this.redmine.options.address}/issues/${this.issue.id}`
         )
       )
-      .then(
-        (success) => {},
-        (reason) => {
-          vscode.window.showErrorMessage(reason);
-        }
-      );
+      .then(undefined, (reason) => {
+        vscode.window.showErrorMessage(reason);
+      });
   }
 
   private changeStatus() {
@@ -210,7 +214,7 @@ export class IssueController {
   }
 
   listActions() {
-    let issueDetails = `Issue #${this.issue.id} assigned to ${
+    const issueDetails = `Issue #${this.issue.id} assigned to ${
       this.issue.assigned_to ? this.issue.assigned_to.name : "no one"
     }`;
     vscode.window
@@ -263,7 +267,7 @@ export class IssueController {
             this.quickUpdate();
           }
         },
-        (error) => {
+        (_error) => {
           /* ? */
         }
       );

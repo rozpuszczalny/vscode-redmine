@@ -1,6 +1,4 @@
-import { RedmineServer } from "../redmine/redmine-server";
 import * as vscode from "vscode";
-import { PickItem } from "./list-open-issues-assigned-to-me";
 import { ActionProperties } from "./action-properties";
 
 export default async ({ server, config }: ActionProperties) => {
@@ -12,19 +10,16 @@ export default async ({ server, config }: ActionProperties) => {
           `${server.options.address}/projects/${projectName}/issues/new`
         )
       )
-      .then(
-        (success) => {},
-        (reason) => {
-          vscode.window.showErrorMessage(reason);
-        }
-      );
+      .then(undefined, (reason) => {
+        vscode.window.showErrorMessage(reason);
+      });
   };
 
   if (config.identifier) {
     return open(config.identifier);
   }
 
-  let promise = server.getProjects();
+  const promise = server.getProjects();
 
   promise.then(
     (projects) => {
