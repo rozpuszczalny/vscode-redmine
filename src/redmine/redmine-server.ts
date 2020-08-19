@@ -6,8 +6,14 @@ import {
   IssueStatus,
   Membership,
   QuickUpdate,
-  QuickUpdateResult
+  QuickUpdateResult,
 } from "../controllers/domain";
+import { TimeEntryActivity } from "./models/time-entry-activity";
+import { Project } from "./models/project";
+import { TimeEntry } from "./models/time-entry";
+import { Issue } from "./models/issue";
+import { IssueStatus as RedmineIssueStatus } from "./models/issue-status";
+import { Membership as RedmineMembership } from "./models/membership";
 
 type HttpMethods = "GET" | "POST" | "PUT" | "DELETE" | "PATCH";
 
@@ -43,29 +49,10 @@ export class RedmineOptionsError extends Error {
   name = "RedmineOptionsError";
 }
 
-export interface RedmineProjectResponse {
-  id: string | number;
-  name: string;
-  description: string;
-  identifier: string;
-}
-
-export interface RedmineTimeEntryActivity {
-  id: number;
-  name: string;
-}
-
-export interface RedmineTimeEntry {
-  issue_id: number;
-  activity_id: RedmineTimeEntryActivity["id"];
-  hours: string;
-  comments: string;
-}
-
 export class RedmineServer {
   options: RedmineServerOptions;
 
-  private timeEntryActivities: RedmineTimeEntryActivity[] = null;
+  private timeEntryActivities: TimeEntryActivity[] = null;
 
   get request() {
     return this.options.url.protocol === "https:"
@@ -91,7 +78,7 @@ export class RedmineServer {
   private setOptions(options: RedmineServerConnectionOptions) {
     this.options = {
       ...options,
-      url: parse(options.address)
+      url: parse(options.address),
     };
     if (this.options.additionalHeaders == null) {
       this.options.additionalHeaders = {};
@@ -110,11 +97,11 @@ export class RedmineServer {
       port: url.port,
       headers: {
         [REDMINE_API_KEY_HEADER_NAME]: key,
-        ...additionalHeaders
+        ...additionalHeaders,
       },
       rejectUnauthorized: rejectUnauthorized,
       path: `${url.pathname}${path}`,
-      method
+      method,
     };
     if (data) {
       options.headers["Content-Length"] = data.length;
@@ -170,7 +157,7 @@ export class RedmineServer {
         resolve(null);
       };
 
-      const clientRequest = this.request(options, incoming => {
+      const clientRequest = this.request(options, (incoming) => {
         incoming.on("data", handleData(incoming));
         incoming.on("end", handleEnd(incoming));
       });
@@ -188,31 +175,31 @@ export class RedmineServer {
   }
 
   getProjects() {
-    return this.doRequest<{ projects: RedmineProjectResponse[] }>(
+    return this.doRequest<{ projects: Project[] }>(
       `/projects.json`,
       "GET"
     ).then(({ projects }) =>
       projects.map(
-        proj =>
+        (proj) =>
           new RedmineProject(this, {
             ...proj,
-            id: `${proj.id}`
+            id: `${proj.id}`,
           })
       )
     );
   }
 
   getTimeEntryActivities(): Promise<{
-    time_entry_activities: RedmineTimeEntryActivity[];
+    time_entry_activities: TimeEntryActivity[];
   }> {
     if (this.timeEntryActivities) {
       return Promise.resolve({
-        time_entry_activities: this.timeEntryActivities
+        time_entry_activities: this.timeEntryActivities,
       });
     }
     return this.doRequest<{
-      time_entry_activities: RedmineTimeEntryActivity[];
-    }>(`/enumerations/time_entry_activities.json`, "GET").then(response => {
+      time_entry_activities: TimeEntryActivity[];
+    }>(`/enumerations/time_entry_activities.json`, "GET").then((response) => {
       if (response) {
         this.timeEntryActivities = response.time_entry_activities;
       }
@@ -226,18 +213,18 @@ export class RedmineServer {
     activityId: number,
     hours: string,
     message: string
-  ): Promise<any> {
-    return this.doRequest<{ time_entry: RedmineTimeEntry }>(
+  ): Promise<unknown> {
+    return this.doRequest<{ time_entry: TimeEntry }>(
       `/time_entries.json`,
       "POST",
       Buffer.from(
         JSON.stringify({
-          time_entry: <RedmineTimeEntry>{
+          time_entry: <TimeEntry>{
             issue_id: issueId,
             activity_id: activityId,
             hours,
-            comments: message
-          }
+            comments: message,
+          },
         })
       )
     );
@@ -247,38 +234,38 @@ export class RedmineServer {
    * Returns promise, that resolves to an issue
    * @param issueId ID of issue
    */
-  getIssueById(issueId: string): Promise<{ issue: any }> {
+  getIssueById(issueId: string): Promise<{ issue: Issue }> {
     return this.doRequest(`/issues/${issueId}.json`, "GET");
   }
 
   /**
    * Returns promise, that resolves, when issue status is set
    */
-  setIssueStatus(issue: any, statusId: number): Promise<any> {
-    return this.doRequest<{ issue: any }>(
+  setIssueStatus(issue: Issue, statusId: number): Promise<unknown> {
+    return this.doRequest<{ issue: Issue }>(
       `/issues/${issue.id}.json`,
       "PUT",
       new Buffer(
         JSON.stringify({
           issue: {
-            status_id: statusId
-          }
+            status_id: statusId,
+          },
         })
       )
     );
   }
 
-  issueStatuses: { issue_statuses: any[] } = null;
+  issueStatuses: { issue_statuses: RedmineIssueStatus[] } = null;
 
   /**
    * Returns promise, that resolves to list of issue statuses in provided redmine server
    */
-  getIssueStatuses(): Promise<{ issue_statuses: any[] }> {
+  getIssueStatuses(): Promise<{ issue_statuses: RedmineIssueStatus[] }> {
     if (this.issueStatuses == null) {
-      return this.doRequest<{ issue_statuses: any[] }>(
+      return this.doRequest<{ issue_statuses: RedmineIssueStatus[] }>(
         "/issue_statuses.json",
         "GET"
-      ).then(obj => {
+      ).then((obj) => {
         if (obj) {
           // Shouldn't change much; cache it.
           this.issueStatuses = obj;
@@ -293,20 +280,19 @@ export class RedmineServer {
 
   async getIssueStatusesTyped(): Promise<IssueStatus[]> {
     const statuses = await this.getIssueStatuses();
-    return statuses.issue_statuses.map(s => new IssueStatus(s.id, s.name));
+    return statuses.issue_statuses.map((s) => new IssueStatus(s.id, s.name));
   }
   async getMemberships(projectId: string): Promise<Membership[]> {
-    const membershipsResponse = await this.doRequest<{ memberships: any[] }>(
-      `/projects/${projectId}/memberships.json`,
-      "GET"
-    );
+    const membershipsResponse = await this.doRequest<{
+      memberships: RedmineMembership[];
+    }>(`/projects/${projectId}/memberships.json`, "GET");
 
     return membershipsResponse.memberships
-      .filter(m => m.user)
-      .map(m => new Membership(m.user.id, m.user.name));
+      .filter((m) => m.user)
+      .map((m) => new Membership(m.user.id, m.user.name));
   }
   async applyQuickUpdate(quickUpdate: QuickUpdate): Promise<QuickUpdateResult> {
-    await this.doRequest<{ issue: any }>(
+    await this.doRequest<{ issue: Issue }>(
       `/issues/${quickUpdate.issueId}.json`,
       "PUT",
       new Buffer(
@@ -314,8 +300,8 @@ export class RedmineServer {
           issue: {
             status_id: quickUpdate.status.statusId,
             assigned_to_id: quickUpdate.assignee.userId,
-            notes: quickUpdate.message
-          }
+            notes: quickUpdate.message,
+          },
         })
       )
     );
@@ -334,8 +320,8 @@ export class RedmineServer {
   /**
    * Returns promise, that resolves to list of issues assigned to api key owner
    */
-  getIssuesAssignedToMe(): Promise<{ issues: any[] }> {
-    return this.doRequest<{ issues: any[] }>(
+  getIssuesAssignedToMe(): Promise<{ issues: Issue[] }> {
+    return this.doRequest<{ issues: Issue[] }>(
       "/issues.json?status_id=open&assigned_to_id=me",
       "GET"
     );

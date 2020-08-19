@@ -1,6 +1,4 @@
-import { RedmineServer } from "../redmine/redmine-server";
 import * as vscode from "vscode";
-import { PickItem } from "./list-open-issues-assigned-to-me";
 import { ActionProperties } from "./action-properties";
 
 export default async ({ server, config }: ActionProperties) => {
@@ -12,46 +10,43 @@ export default async ({ server, config }: ActionProperties) => {
           `${server.options.address}/projects/${projectName}/issues/new`
         )
       )
-      .then(
-        success => {},
-        reason => {
-          vscode.window.showErrorMessage(reason);
-        }
-      );
+      .then(undefined, (reason) => {
+        vscode.window.showErrorMessage(reason);
+      });
   };
 
   if (config.identifier) {
-      return open(config.identifier);
+    return open(config.identifier);
   }
 
-  let promise = server.getProjects();
+  const promise = server.getProjects();
 
   promise.then(
-    projects => {
+    (projects) => {
       vscode.window
         .showQuickPick(
-          projects.map(project => project.toQuickPickItem()),
+          projects.map((project) => project.toQuickPickItem()),
           {
-            placeHolder: "Choose project to create issue in"
+            placeHolder: "Choose project to create issue in",
           }
         )
-        .then(project => {
+        .then((project) => {
           if (project === undefined) return;
           open(project.identifier);
         });
     },
-    error => {
+    (error) => {
       vscode.window.showErrorMessage(error);
     }
   );
 
   vscode.window.withProgress(
     {
-      location: vscode.ProgressLocation.Window
+      location: vscode.ProgressLocation.Window,
     },
-    progress => {
+    (progress) => {
       progress.report({
-        message: `Waiting for response from ${server.options.url.host}...`
+        message: `Waiting for response from ${server.options.url.host}...`,
       });
       return promise;
     }
