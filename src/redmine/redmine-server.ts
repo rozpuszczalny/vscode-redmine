@@ -6,7 +6,7 @@ import {
   IssueStatus,
   Membership,
   QuickUpdate,
-  QuickUpdateResult
+  QuickUpdateResult,
 } from "../controllers/domain";
 
 type HttpMethods = "GET" | "POST" | "PUT" | "DELETE" | "PATCH";
@@ -91,7 +91,7 @@ export class RedmineServer {
   private setOptions(options: RedmineServerConnectionOptions) {
     this.options = {
       ...options,
-      url: parse(options.address)
+      url: parse(options.address),
     };
     if (this.options.additionalHeaders == null) {
       this.options.additionalHeaders = {};
@@ -110,11 +110,11 @@ export class RedmineServer {
       port: url.port,
       headers: {
         [REDMINE_API_KEY_HEADER_NAME]: key,
-        ...additionalHeaders
+        ...additionalHeaders,
       },
       rejectUnauthorized: rejectUnauthorized,
       path: `${url.pathname}${path}`,
-      method
+      method,
     };
     if (data) {
       options.headers["Content-Length"] = data.length;
@@ -170,7 +170,7 @@ export class RedmineServer {
         resolve(null);
       };
 
-      const clientRequest = this.request(options, incoming => {
+      const clientRequest = this.request(options, (incoming) => {
         incoming.on("data", handleData(incoming));
         incoming.on("end", handleEnd(incoming));
       });
@@ -193,10 +193,10 @@ export class RedmineServer {
       "GET"
     ).then(({ projects }) =>
       projects.map(
-        proj =>
+        (proj) =>
           new RedmineProject(this, {
             ...proj,
-            id: `${proj.id}`
+            id: `${proj.id}`,
           })
       )
     );
@@ -207,12 +207,12 @@ export class RedmineServer {
   }> {
     if (this.timeEntryActivities) {
       return Promise.resolve({
-        time_entry_activities: this.timeEntryActivities
+        time_entry_activities: this.timeEntryActivities,
       });
     }
     return this.doRequest<{
       time_entry_activities: RedmineTimeEntryActivity[];
-    }>(`/enumerations/time_entry_activities.json`, "GET").then(response => {
+    }>(`/enumerations/time_entry_activities.json`, "GET").then((response) => {
       if (response) {
         this.timeEntryActivities = response.time_entry_activities;
       }
@@ -236,8 +236,8 @@ export class RedmineServer {
             issue_id: issueId,
             activity_id: activityId,
             hours,
-            comments: message
-          }
+            comments: message,
+          },
         })
       )
     );
@@ -261,8 +261,8 @@ export class RedmineServer {
       new Buffer(
         JSON.stringify({
           issue: {
-            status_id: statusId
-          }
+            status_id: statusId,
+          },
         })
       )
     );
@@ -278,7 +278,7 @@ export class RedmineServer {
       return this.doRequest<{ issue_statuses: any[] }>(
         "/issue_statuses.json",
         "GET"
-      ).then(obj => {
+      ).then((obj) => {
         if (obj) {
           // Shouldn't change much; cache it.
           this.issueStatuses = obj;
@@ -293,7 +293,7 @@ export class RedmineServer {
 
   async getIssueStatusesTyped(): Promise<IssueStatus[]> {
     const statuses = await this.getIssueStatuses();
-    return statuses.issue_statuses.map(s => new IssueStatus(s.id, s.name));
+    return statuses.issue_statuses.map((s) => new IssueStatus(s.id, s.name));
   }
   async getMemberships(projectId: string): Promise<Membership[]> {
     const membershipsResponse = await this.doRequest<{ memberships: any[] }>(
@@ -302,8 +302,8 @@ export class RedmineServer {
     );
 
     return membershipsResponse.memberships
-      .filter(m => m.user)
-      .map(m => new Membership(m.user.id, m.user.name));
+      .filter((m) => m.user)
+      .map((m) => new Membership(m.user.id, m.user.name));
   }
   async applyQuickUpdate(quickUpdate: QuickUpdate): Promise<QuickUpdateResult> {
     await this.doRequest<{ issue: any }>(
@@ -314,8 +314,8 @@ export class RedmineServer {
           issue: {
             status_id: quickUpdate.status.statusId,
             assigned_to_id: quickUpdate.assignee.userId,
-            notes: quickUpdate.message
-          }
+            notes: quickUpdate.message,
+          },
         })
       )
     );

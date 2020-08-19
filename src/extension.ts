@@ -11,30 +11,33 @@ import { ActionProperties } from "./commands/action-properties";
 export function activate(context: vscode.ExtensionContext) {
   const bucket = {
     servers: [] as RedmineServer[],
-    projects: [] as RedmineProject[]
+    projects: [] as RedmineProject[],
   };
 
   const parseConfiguration = () => {
     return vscode.window
       .showWorkspaceFolderPick()
-      .then(v => {
-        const config = vscode.workspace.getConfiguration("redmine", v.uri) as unknown as RedmineConfig;
+      .then((v) => {
+        const config = (vscode.workspace.getConfiguration(
+          "redmine",
+          v.uri
+        ) as unknown) as RedmineConfig;
         const redmineServer = new RedmineServer({
           address: config.url,
-          key: config.apiKey
+          key: config.apiKey,
         });
 
         const server =
-          bucket.servers.find(s => s.compare(redmineServer)) || redmineServer;
+          bucket.servers.find((s) => s.compare(redmineServer)) || redmineServer;
 
         return {
           server,
-          config
+          config,
         };
       })
       .then(
-        s => s,
-        err => {
+        (s) => s,
+        (err) => {
           console.log(err);
           throw err;
         }
@@ -78,7 +81,10 @@ export function activate(context: vscode.ExtensionContext) {
     </html>`;
   }
 
-  const registerCommand = (name: string, action: (props: ActionProperties) => any) => {
+  const registerCommand = (
+    name: string,
+    action: (props: ActionProperties) => any
+  ) => {
     context.subscriptions.push(
       vscode.commands.registerCommand(`redmine.${name}`, () => {
         parseConfiguration().then(action);
