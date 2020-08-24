@@ -76,7 +76,7 @@ export function activate(context: vscode.ExtensionContext) {
             vscode.window.showQuickPick<PickItem>(issues.issues.map((issue) => {
                 return {
                     "label": `[${issue.tracker.name}] (${issue.status.name}) ${issue.subject} by ${issue.author.name}`,
-                    "description": issue.description.split("\n").join(" ").split("\r").join(""),
+                    "description": (issue.description || "").split("\n").join(" ").split("\r").join(""),
                     "detail": `Issue #${issue.id} assigned to ${issue.assigned_to ? issue.assigned_to.name : "no one"}`,
                     "fullIssue": issue
                 }
@@ -173,7 +173,7 @@ export function activate(context: vscode.ExtensionContext) {
                 vscode.window.showQuickPick<PickItem>(projects.projects.map((project) => {
                     return {
                         "label": `${project.name}`,
-                        "description": project.description.split("\n").join(" ").split("\r").join(""),
+                        "description": (project.description || "").split("\n").join(" ").split("\r").join(""),
                         "detail": `${project.identifier}`,
                         "identifier": project.identifier
                     }
