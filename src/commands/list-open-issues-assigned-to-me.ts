@@ -20,7 +20,7 @@ export default async ({ server }: ActionProperties) => {
           issues.issues.map((issue) => {
             return {
               label: `[${issue.tracker.name}] (${issue.status.name}) ${issue.subject} by ${issue.author.name}`,
-              description: issue.description
+              description: (issue.description || "")
                 .split("\n")
                 .join(" ")
                 .split("\r")

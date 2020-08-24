@@ -31,7 +31,7 @@ export class RedmineProject {
   toQuickPickItem(): ProjectQuickPickItem {
     return {
       label: this.options.name,
-      description: this.options.description
+      description: (this.options.description || "")
         .split("\n")
         .join(" ")
         .split("\r")
