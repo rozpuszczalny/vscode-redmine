@@ -1,4 +1,6 @@
-export interface RedmineConfig {
+import { WorkspaceConfiguration } from "vscode";
+
+export interface RedmineConfig extends WorkspaceConfiguration {
   /**
    * URL of Redmine
    * @example https://example.com

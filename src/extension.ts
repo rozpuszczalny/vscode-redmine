@@ -7,6 +7,8 @@ import listOpenIssuesAssignedToMe from "./commands/list-open-issues-assigned-to-
 import newIssue from "./commands/new-issue";
 import { RedmineConfig } from "./definitions/redmine-config";
 import { ActionProperties } from "./commands/action-properties";
+import { MyIssuesTree } from "./trees/my-issues-tree";
+import { ProjectsTree } from "./trees/projects-tree";
 
 export function activate(context: vscode.ExtensionContext): void {
   const bucket = {
@@ -14,34 +16,81 @@ export function activate(context: vscode.ExtensionContext): void {
     projects: [] as RedmineProject[],
   };
 
-  const parseConfiguration = () => {
-    return vscode.window
-      .showWorkspaceFolderPick()
-      .then((v) => {
-        const config = (vscode.workspace.getConfiguration(
-          "redmine",
-          v.uri
-        ) as unknown) as RedmineConfig;
-        const redmineServer = new RedmineServer({
-          address: config.url,
-          key: config.apiKey,
+  const myIssuesTree = new MyIssuesTree();
+  const projectsTree = new ProjectsTree();
+
+  vscode.window.createTreeView("redmine-explorer-my-issues", {
+    treeDataProvider: myIssuesTree,
+  });
+  vscode.window.createTreeView("redmine-explorer-projects", {
+    treeDataProvider: projectsTree,
+  });
+
+  vscode.commands.executeCommand(
+    "setContext",
+    "redmine:hasSingleConfig",
+    vscode.workspace.workspaceFolders.length <= 1
+  );
+
+  const parseConfiguration = (
+    withPick = true,
+    props?: ActionProperties,
+    ...args: unknown[]
+  ) => {
+    return withPick
+      ? vscode.window
+          .showWorkspaceFolderPick()
+          .then((v) => {
+            if (!v) {
+              vscode.commands.executeCommand(
+                "setContext",
+                "redmine:hasSingleConfig",
+                true
+              );
+            } else {
+              vscode.commands.executeCommand(
+                "setContext",
+                "redmine:hasSingleConfig",
+                false
+              );
+            }
+            const config = vscode.workspace.getConfiguration(
+              "redmine",
+              v && v.uri
+            ) as RedmineConfig;
+            const redmineServer = new RedmineServer({
+              address: config.url,
+              key: config.apiKey,
+            });
+
+            const fromBucket = bucket.servers.find((s) =>
+              s.compare(redmineServer)
+            );
+            const server = fromBucket || redmineServer;
+
+            if (!fromBucket) {
+              bucket.servers.push(server);
+            }
+
+            return {
+              props: {
+                server,
+                config,
+              },
+              args: [],
+            };
+          })
+          .then(
+            (s) => s,
+            (err) => {
+              console.log(err);
+              throw err;
+            }
+          )
+      : Promise.resolve({
+          props,
+          args,
         });
-
-        const server =
-          bucket.servers.find((s) => s.compare(redmineServer)) || redmineServer;
-
-        return {
-          server,
-          config,
-        };
-      })
-      .then(
-        (s) => s,
-        (err) => {
-          console.log(err);
-          throw err;
-        }
-      );
   };
 
   const currentConfig = vscode.workspace.getConfiguration("redmine");
@@ -83,11 +132,13 @@ export function activate(context: vscode.ExtensionContext): void {
 
   const registerCommand = (
     name: string,
-    action: (props: ActionProperties) => void
+    action: (props: ActionProperties, ...args: unknown[]) => void
   ) => {
     context.subscriptions.push(
-      vscode.commands.registerCommand(`redmine.${name}`, () => {
-        parseConfiguration().then(action);
+      vscode.commands.registerCommand(`redmine.${name}`, (...argz) => {
+        parseConfiguration(...argz).then(({ props, args }) => {
+          action(props, ...args);
+        });
       })
     );
   };
@@ -99,6 +150,19 @@ export function activate(context: vscode.ExtensionContext): void {
     openActionsForIssueUnderCursor
   );
   registerCommand("newIssue", newIssue);
+  registerCommand("changeDefaultServer", (conf) => {
+    myIssuesTree.setServer(conf.server);
+    projectsTree.setServer(conf.server);
+
+    projectsTree.onDidChangeTreeData$.fire();
+    myIssuesTree.onDidChangeTreeData$.fire();
+  });
+  context.subscriptions.push(
+    vscode.commands.registerCommand("redmine.refreshIssues", () => {
+      projectsTree.onDidChangeTreeData$.fire();
+      myIssuesTree.onDidChangeTreeData$.fire();
+    })
+  );
 }
 
 // this method is called when your extension is deactivated

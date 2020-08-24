@@ -327,6 +327,18 @@ export class RedmineServer {
     );
   }
 
+  /**
+   * Returns promise, that resolves to list of open issues for project
+   */
+  getOpenIssuesForProject(
+    project_id: number | string
+  ): Promise<{ issues: Issue[] }> {
+    return this.doRequest<{ issues: Issue[] }>(
+      `/issues.json?status_id=open&project_id=${project_id}`,
+      "GET"
+    );
+  }
+
   compare(other: RedmineServer) {
     return (
       this.options.address === other.options.address &&
