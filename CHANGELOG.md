@@ -4,6 +4,10 @@ All notable changes to the "vscode-redmine" extension will be documented in this
 
 ## [Unreleased]
 
+### Fixed
+
+- [Issue #23](https://github.com/rozpuszczalny/vscode-redmine/issues/23)
+
 ### Added
 
 - [Issue #16](https://github.com/rozpuszczalny/vscode-redmine/issues/16) Mulitroot support - configuration can be set in `settings.json` file, under `.vscode` folder of workspace folder.
