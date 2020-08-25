@@ -69,4 +69,4 @@ Logo is remixed version of original Redmine Logo.
 Redmine Logo is Copyright (C) 2009 Martin Herr and is licensed under the Creative Commons Attribution-Share Alike 2.5 Generic license.
 See http://creativecommons.org/licenses/by-sa/2.5/ for more details.
 
-Made with ❤️ by [@rozpuszczalny](https://tomaszdomanski.com)
+Made with ❤️ by [@rozpuszczalny](https://tomaszdomanski.com/?utm_source=github&utm_campaign=vscode-redmine)
