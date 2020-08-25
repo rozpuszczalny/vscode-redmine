@@ -4,6 +4,10 @@ All notable changes to the "vscode-redmine" extension will be documented in this
 
 ## [Unreleased]
 
+### Added
+
+- Link to my website
+
 ## 1.0.0 - 25.08.2020
 
 ### Fixed
