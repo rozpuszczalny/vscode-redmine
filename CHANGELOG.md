@@ -10,6 +10,7 @@ All notable changes to the "vscode-redmine" extension will be documented in this
 
 ### Added
 
+- [Issue #18](https://github.com/rozpuszczalny/vscode-redmine/issues/18) Showcase of features in README.md
 - [Issue #16](https://github.com/rozpuszczalny/vscode-redmine/issues/16) Mulitroot support - configuration can be set in `settings.json` file, under `.vscode` folder of workspace folder.
 - ESLint and Prettier
 - [Issue #11](https://github.com/rozpuszczalny/vscode-redmine/issues/11) Sidebar panel with issues assigned to user and list of projects
