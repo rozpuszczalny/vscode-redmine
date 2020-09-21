@@ -174,19 +174,37 @@ export class RedmineServer {
     });
   }
 
-  getProjects() {
-    return this.doRequest<{ projects: Project[] }>(
-      `/projects.json`,
-      "GET"
-    ).then(({ projects }) =>
-      projects.map(
-        (proj) =>
-          new RedmineProject(this, {
-            ...proj,
-            id: `${proj.id}`,
-          })
-      )
-    );
+  async getProjects() {
+    const req = async (
+      offset = 0,
+      limit = 50,
+      count = null,
+      accumulator = []
+    ) => {
+      if (count && count <= offset) {
+        return accumulator;
+      }
+
+      const [totalCount, result] = await this.doRequest<{
+        projects: Project[];
+        total_count: number;
+      }>(`/projects.json?limit=${limit}&offset=${offset}`, "GET").then(
+        ({ total_count, projects }) => [
+          total_count,
+          projects.map(
+            (proj) =>
+              new RedmineProject(this, {
+                ...proj,
+                id: `${proj.id}`,
+              })
+          ),
+        ]
+      );
+
+      return req(offset + limit, limit, totalCount, accumulator.concat(result));
+    };
+
+    return req();
   }
 
   getTimeEntryActivities(): Promise<{
