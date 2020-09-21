@@ -174,7 +174,7 @@ export class RedmineServer {
     });
   }
 
-  async getProjects() {
+  async getProjects(): Promise<RedmineProject[]> {
     const req = async (
       offset = 0,
       limit = 50,
