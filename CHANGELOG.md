@@ -4,6 +4,10 @@ All notable changes to the "vscode-redmine" extension will be documented in this
 
 ## [Unreleased]
 
+### Fixed
+
+- [Issue #37](https://github.com/rozpuszczalny/vscode-redmine/issues/37)
+
 ## 1.0.3 - 21.09.2020
 
 ### Fixed
