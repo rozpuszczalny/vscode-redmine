@@ -16,7 +16,7 @@ export interface RedmineConfig extends WorkspaceConfiguration {
   /**
    * Pass rejectUnauthorized to https request options. Use only if your redmine instance has self-signed certificate!
    */
-  rejectUnauthorized?: string;
+  rejectUnauthorized?: boolean;
   /**
    * Project identifier in Redmine
    */

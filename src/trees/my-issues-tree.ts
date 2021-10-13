@@ -12,6 +12,8 @@ export class MyIssuesTree implements vscode.TreeDataProvider<Issue> {
     this.server = new RedmineServer({
       address: config.url,
       key: config.apiKey,
+      additionalHeaders: config.additionalHeaders,
+      rejectUnauthorized: config.rejectUnauthorized,
     });
   }
 
