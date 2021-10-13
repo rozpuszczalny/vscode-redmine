@@ -14,6 +14,7 @@ import { TimeEntry } from "./models/time-entry";
 import { Issue } from "./models/issue";
 import { IssueStatus as RedmineIssueStatus } from "./models/issue-status";
 import { Membership as RedmineMembership } from "./models/membership";
+import { isEqual } from "lodash";
 
 type HttpMethods = "GET" | "POST" | "PUT" | "DELETE" | "PATCH";
 
@@ -360,7 +361,9 @@ export class RedmineServer {
   compare(other: RedmineServer) {
     return (
       this.options.address === other.options.address &&
-      this.options.key === other.options.key
+      this.options.key === other.options.key &&
+      this.options.rejectUnauthorized === other.options.rejectUnauthorized &&
+      isEqual(this.options.additionalHeaders, other.options.additionalHeaders)
     );
   }
 }

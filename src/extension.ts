@@ -61,6 +61,8 @@ export function activate(context: vscode.ExtensionContext): void {
             const redmineServer = new RedmineServer({
               address: config.url,
               key: config.apiKey,
+              additionalHeaders: config.additionalHeaders,
+              rejectUnauthorized: config.rejectUnauthorized,
             });
 
             const fromBucket = bucket.servers.find((s) =>
