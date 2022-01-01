@@ -196,7 +196,7 @@ export class RedmineServer {
             (proj) =>
               new RedmineProject(this, {
                 ...proj,
-                id: `${proj.id}`,
+                id: `${proj.id}`, parent: proj.parent,
               })
           ),
         ]
@@ -350,12 +350,40 @@ export class RedmineServer {
    * Returns promise, that resolves to list of open issues for project
    */
   getOpenIssuesForProject(
-    project_id: number | string
+    project_id: number | string,
+    include_subproject: number = 1
   ): Promise<{ issues: Issue[] }> {
-    return this.doRequest<{ issues: Issue[] }>(
-      `/issues.json?status_id=open&project_id=${project_id}`,
-      "GET"
-    );
+    if (include_subproject)
+      return this.doRequest<{ issues: Issue[] }>(
+        `/issues.json?status_id=open&project_id=${project_id}&subproject_id=!*`,
+        "GET"
+      );
+    else
+      return this.doRequest<{ issues: Issue[] }>(
+        `/issues.json?status_id=open&project_id=${project_id}`,
+        "GET"
+      );
+  }
+
+  getProjectsByParent(
+    parent_id: string
+  ): Promise<RedmineProject[]> {
+    return this.doRequest<{ projects: Project[] }>(`/projects.json?limit=100`, "GET").then(
+      (projects) => {
+        let list: RedmineProject[] = [];
+
+        projects.projects.forEach((project) => {
+          if (project.parent != undefined)
+            if (project.parent.id == parent_id) {
+              list.push(new RedmineProject(this, {
+                ...project,
+                id: `${project.id}`, parent: project.parent,
+              }));
+            }
+        });
+
+        return list;
+      });
   }
 
   compare(other: RedmineServer) {

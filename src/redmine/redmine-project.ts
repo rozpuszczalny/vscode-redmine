@@ -11,11 +11,17 @@ export interface RedmineProjectOptions {
   name: string;
   description: string;
   identifier: string;
+  parent: ProjectParentItem;
 }
 
 export interface ProjectQuickPickItem extends QuickPickItem {
   identifier: string;
   project: RedmineProject;
+}
+
+export interface ProjectParentItem {
+   id: string;
+   name: string;
 }
 
 export class RedmineProject {
@@ -26,6 +32,10 @@ export class RedmineProject {
 
   get id() {
     return this.options.id;
+  }
+
+  get parent() {
+    return this.options.parent;
   }
 
   toQuickPickItem(): ProjectQuickPickItem {
