@@ -53,6 +53,10 @@
         "command": "redmine.refreshIssues",
         "title": "Redmine: Refresh issues",
         "icon": "$(refresh)"
+      },
+      {
+         "command": "redmine.toggleProjectTreeView",
+         "title": "Toggle Project View"
       }
     ],
     "views": {
@@ -96,6 +100,10 @@
         {
           "command": "redmine.changeDefaultServer",
           "when": "view == 'redmine-explorer-projects' && !hasSingleConfig"
+        },
+        {
+          "command": "redmine.toggleProjectTreeView",
+          "when": "view == 'redmine-explorer-projects'"   
         },
         {
           "command": "redmine.refreshIssues",

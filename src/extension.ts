@@ -163,6 +163,9 @@ export function activate(context: vscode.ExtensionContext): void {
     vscode.commands.registerCommand("redmine.refreshIssues", () => {
       projectsTree.onDidChangeTreeData$.fire();
       myIssuesTree.onDidChangeTreeData$.fire();
+    }),
+    vscode.commands.registerCommand("redmine.toggleProjectTreeView", () => {
+      projectsTree.toggleView();
     })
   );
 }

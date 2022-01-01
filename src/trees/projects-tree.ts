@@ -77,6 +77,11 @@ export class ProjectsTree
     return await this.server.getProjects();
   }
 
+  toggleView() {
+    this.viewStyle = (this.viewStyle) ? 0 : 1;
+    this.onDidChangeTreeData$.fire();
+  }
+
   setServer(server: RedmineServer) {
     this.server = server;
   }
