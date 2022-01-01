@@ -7,6 +7,7 @@ import { Issue } from "../redmine/models/issue";
 export class ProjectsTree
   implements vscode.TreeDataProvider<RedmineProject | Issue> {
   server: RedmineServer;
+  viewStyle: number;
   constructor() {
     const config = vscode.workspace.getConfiguration(
       "redmine"
@@ -17,6 +18,7 @@ export class ProjectsTree
       additionalHeaders: config.additionalHeaders,
       rejectUnauthorized: config.rejectUnauthorized,
     });
+    this.viewStyle = 0;
   }
 
   onDidChangeTreeData$ = new vscode.EventEmitter<void>();
@@ -49,8 +51,27 @@ export class ProjectsTree
     projectOrIssue?: RedmineProject | Issue
   ): Promise<(RedmineProject | Issue)[]> {
     if (projectOrIssue != null && projectOrIssue instanceof RedmineProject) {
+      let subprojects;
+
+      if (this.viewStyle) {
+        subprojects = await this.server.getProjectsByParent(projectOrIssue.id);
+        return (await this.server.getOpenIssuesForProject(projectOrIssue.id, 0))
+          .issues.concat(subprojects);
+      }
+
       return (await this.server.getOpenIssuesForProject(projectOrIssue.id))
         .issues;
+    }
+
+    if (this.viewStyle) {
+      let projects: RedmineProject[] = [];
+      await this.server.getProjects().then((projs) => {
+        projs.forEach((proj) => {
+          if (proj.parent == undefined)
+            projects.push(proj);
+        });
+      });
+      return projects;
     }
 
     return await this.server.getProjects();
