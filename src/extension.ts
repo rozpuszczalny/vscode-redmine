@@ -8,7 +8,7 @@ import newIssue from "./commands/new-issue";
 import { RedmineConfig } from "./definitions/redmine-config";
 import { ActionProperties } from "./commands/action-properties";
 import { MyIssuesTree } from "./trees/my-issues-tree";
-import { ProjectsTree } from "./trees/projects-tree";
+import { ProjectsTree, ProjectsViewStyle } from "./trees/projects-tree";
 
 export function activate(context: vscode.ExtensionContext): void {
   const bucket = {
@@ -30,6 +30,12 @@ export function activate(context: vscode.ExtensionContext): void {
     "setContext",
     "redmine:hasSingleConfig",
     vscode.workspace.workspaceFolders.length <= 1
+  );
+
+  vscode.commands.executeCommand(
+    "setContext",
+    "redmine:treeViewStyle",
+    ProjectsViewStyle.LIST
   );
 
   const parseConfiguration = (
@@ -164,8 +170,23 @@ export function activate(context: vscode.ExtensionContext): void {
       projectsTree.onDidChangeTreeData$.fire();
       myIssuesTree.onDidChangeTreeData$.fire();
     }),
-    vscode.commands.registerCommand("redmine.toggleProjectTreeView", () => {
-      projectsTree.toggleView();
+    vscode.commands.registerCommand("redmine.toggleTreeView", () => {
+      vscode.commands.executeCommand(
+        "setContext",
+        "redmine:treeViewStyle",
+        ProjectsViewStyle.LIST
+      );
+      console.log("set project view style to list view");
+      projectsTree.setViewStyle(ProjectsViewStyle.LIST);
+    }),
+    vscode.commands.registerCommand("redmine.toggleListView", () => {
+      vscode.commands.executeCommand(
+        "setContext",
+        "redmine:treeViewStyle",
+        ProjectsViewStyle.TREE
+      );
+      console.log("set project view style to tree view");
+      projectsTree.setViewStyle(ProjectsViewStyle.TREE);
     })
   );
 }

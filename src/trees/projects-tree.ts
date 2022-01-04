@@ -4,10 +4,15 @@ import { RedmineConfig } from "../definitions/redmine-config";
 import { RedmineProject } from "../redmine/redmine-project";
 import { Issue } from "../redmine/models/issue";
 
+export enum ProjectsViewStyle {
+  LIST = 0,
+  TREE = 1,
+}
+
 export class ProjectsTree
   implements vscode.TreeDataProvider<RedmineProject | Issue> {
   server: RedmineServer;
-  viewStyle: number;
+  viewStyle: ProjectsViewStyle;
   constructor() {
     const config = vscode.workspace.getConfiguration(
       "redmine"
@@ -18,7 +23,7 @@ export class ProjectsTree
       additionalHeaders: config.additionalHeaders,
       rejectUnauthorized: config.rejectUnauthorized,
     });
-    this.viewStyle = 0;
+    this.viewStyle = ProjectsViewStyle.LIST;
   }
 
   onDidChangeTreeData$ = new vscode.EventEmitter<void>();
@@ -77,8 +82,8 @@ export class ProjectsTree
     return await this.server.getProjects();
   }
 
-  toggleView() {
-    this.viewStyle = (this.viewStyle) ? 0 : 1;
+  setViewStyle(style: ProjectsViewStyle) {
+    this.viewStyle = style;
     this.onDidChangeTreeData$.fire();
   }
 
