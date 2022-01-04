@@ -167,6 +167,7 @@ export function activate(context: vscode.ExtensionContext): void {
   });
   context.subscriptions.push(
     vscode.commands.registerCommand("redmine.refreshIssues", () => {
+      projectsTree.clearProjects();
       projectsTree.onDidChangeTreeData$.fire();
       myIssuesTree.onDidChangeTreeData$.fire();
     }),

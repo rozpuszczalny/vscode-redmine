@@ -1,5 +1,6 @@
 import { RedmineServer } from "./redmine-server";
 import { QuickPickItem } from "vscode";
+import { ProjectParentItem } from "./models/project";
 
 export interface RedmineProjectOptions {
   /**
@@ -11,17 +12,12 @@ export interface RedmineProjectOptions {
   name: string;
   description: string;
   identifier: string;
-  parent: ProjectParentItem;
+  parent?: ProjectParentItem;
 }
 
 export interface ProjectQuickPickItem extends QuickPickItem {
   identifier: string;
   project: RedmineProject;
-}
-
-export interface ProjectParentItem {
-   id: string;
-   name: string;
 }
 
 export class RedmineProject {

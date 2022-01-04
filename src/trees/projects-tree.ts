@@ -13,6 +13,7 @@ export class ProjectsTree
   implements vscode.TreeDataProvider<RedmineProject | Issue> {
   server: RedmineServer;
   viewStyle: ProjectsViewStyle;
+  projects: RedmineProject[];
   constructor() {
     const config = vscode.workspace.getConfiguration(
       "redmine"
@@ -56,30 +57,37 @@ export class ProjectsTree
     projectOrIssue?: RedmineProject | Issue
   ): Promise<(RedmineProject | Issue)[]> {
     if (projectOrIssue != null && projectOrIssue instanceof RedmineProject) {
-      let subprojects;
-
-      if (this.viewStyle) {
-        subprojects = await this.server.getProjectsByParent(projectOrIssue.id);
-        return (await this.server.getOpenIssuesForProject(projectOrIssue.id, 0))
-          .issues.concat(subprojects);
+      if (this.viewStyle == ProjectsViewStyle.TREE) {
+        const subprojects = this.projects.filter((project) => {
+          if (project.parent) {
+            return project.parent.id == projectOrIssue.id;
+          } else {
+            return false;
+          }
+        });
+        return subprojects.concat(
+          (await this.server.getOpenIssuesForProject(projectOrIssue.id, false))
+            .issues
+        );
       }
 
       return (await this.server.getOpenIssuesForProject(projectOrIssue.id))
         .issues;
     }
 
-    if (this.viewStyle) {
-      let projects: RedmineProject[] = [];
-      await this.server.getProjects().then((projs) => {
-        projs.forEach((proj) => {
-          if (proj.parent == undefined)
-            projects.push(proj);
-        });
-      });
-      return projects;
+    if (!this.projects || this.projects.length == 0) {
+      this.projects = await this.server.getProjects();
     }
+    
+    if (this.viewStyle == ProjectsViewStyle.TREE) {
+      return this.projects.filter((project) => !project.parent);
+    }
+    return this.projects;
+  }
 
-    return await this.server.getProjects();
+  clearProjects()
+  {
+    this.projects = [];
   }
 
   setViewStyle(style: ProjectsViewStyle) {
