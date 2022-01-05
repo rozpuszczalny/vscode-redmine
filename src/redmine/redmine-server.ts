@@ -352,7 +352,7 @@ export class RedmineServer {
    */
   getOpenIssuesForProject(
     project_id: number | string,
-    include_subproject: boolean = true
+    include_subproject = true
   ): Promise<{ issues: Issue[] }> {
     if (include_subproject) {
       return this.doRequest<{ issues: Issue[] }>(

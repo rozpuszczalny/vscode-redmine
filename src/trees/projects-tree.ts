@@ -57,14 +57,10 @@ export class ProjectsTree
     projectOrIssue?: RedmineProject | Issue
   ): Promise<(RedmineProject | Issue)[]> {
     if (projectOrIssue != null && projectOrIssue instanceof RedmineProject) {
-      if (this.viewStyle == ProjectsViewStyle.TREE) {
-        const subprojects = this.projects.filter((project) => {
-          if (project.parent) {
-            return project.parent.id == projectOrIssue.id;
-          } else {
-            return false;
-          }
-        });
+      if (this.viewStyle === ProjectsViewStyle.TREE) {
+        const subprojects = this.projects.filter(
+          (project) => project.parent && project.parent.id === projectOrIssue.id
+        );
         return subprojects.concat(
           (await this.server.getOpenIssuesForProject(projectOrIssue.id, false))
             .issues
@@ -75,18 +71,17 @@ export class ProjectsTree
         .issues;
     }
 
-    if (!this.projects || this.projects.length == 0) {
+    if (!this.projects || this.projects.length === 0) {
       this.projects = await this.server.getProjects();
     }
-    
-    if (this.viewStyle == ProjectsViewStyle.TREE) {
+
+    if (this.viewStyle === ProjectsViewStyle.TREE) {
       return this.projects.filter((project) => !project.parent);
     }
     return this.projects;
   }
 
-  clearProjects()
-  {
+  clearProjects() {
     this.projects = [];
   }
 

@@ -177,7 +177,6 @@ export function activate(context: vscode.ExtensionContext): void {
         "redmine:treeViewStyle",
         ProjectsViewStyle.LIST
       );
-      console.log("set project view style to list view");
       projectsTree.setViewStyle(ProjectsViewStyle.LIST);
     }),
     vscode.commands.registerCommand("redmine.toggleListView", () => {
@@ -186,7 +185,6 @@ export function activate(context: vscode.ExtensionContext): void {
         "redmine:treeViewStyle",
         ProjectsViewStyle.TREE
       );
-      console.log("set project view style to tree view");
       projectsTree.setViewStyle(ProjectsViewStyle.TREE);
     })
   );

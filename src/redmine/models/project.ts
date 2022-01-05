@@ -7,6 +7,6 @@ export interface Project {
 }
 
 export interface ProjectParentItem {
-   id: string;
-   name: string;
+  id: string;
+  name: string;
 }
