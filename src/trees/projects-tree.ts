@@ -4,9 +4,16 @@ import { RedmineConfig } from "../definitions/redmine-config";
 import { RedmineProject } from "../redmine/redmine-project";
 import { Issue } from "../redmine/models/issue";
 
+export enum ProjectsViewStyle {
+  LIST = 0,
+  TREE = 1,
+}
+
 export class ProjectsTree
   implements vscode.TreeDataProvider<RedmineProject | Issue> {
   server: RedmineServer;
+  viewStyle: ProjectsViewStyle;
+  projects: RedmineProject[];
   constructor() {
     const config = vscode.workspace.getConfiguration(
       "redmine"
@@ -17,6 +24,7 @@ export class ProjectsTree
       additionalHeaders: config.additionalHeaders,
       rejectUnauthorized: config.rejectUnauthorized,
     });
+    this.viewStyle = ProjectsViewStyle.LIST;
   }
 
   onDidChangeTreeData$ = new vscode.EventEmitter<void>();
@@ -49,11 +57,37 @@ export class ProjectsTree
     projectOrIssue?: RedmineProject | Issue
   ): Promise<(RedmineProject | Issue)[]> {
     if (projectOrIssue != null && projectOrIssue instanceof RedmineProject) {
+      if (this.viewStyle === ProjectsViewStyle.TREE) {
+        const subprojects = this.projects.filter(
+          (project) => project.parent && project.parent.id === projectOrIssue.id
+        );
+        return subprojects.concat(
+          (await this.server.getOpenIssuesForProject(projectOrIssue.id, false))
+            .issues
+        );
+      }
+
       return (await this.server.getOpenIssuesForProject(projectOrIssue.id))
         .issues;
     }
 
-    return await this.server.getProjects();
+    if (!this.projects || this.projects.length === 0) {
+      this.projects = await this.server.getProjects();
+    }
+
+    if (this.viewStyle === ProjectsViewStyle.TREE) {
+      return this.projects.filter((project) => !project.parent);
+    }
+    return this.projects;
+  }
+
+  clearProjects() {
+    this.projects = [];
+  }
+
+  setViewStyle(style: ProjectsViewStyle) {
+    this.viewStyle = style;
+    this.onDidChangeTreeData$.fire();
   }
 
   setServer(server: RedmineServer) {

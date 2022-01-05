@@ -53,6 +53,16 @@
         "command": "redmine.refreshIssues",
         "title": "Redmine: Refresh issues",
         "icon": "$(refresh)"
+      },
+      {
+         "command": "redmine.toggleTreeView",
+         "title": "Toggle Project View: Tree",
+         "icon": "$(list-tree)"
+      },
+      {
+         "command": "redmine.toggleListView",
+         "title": "Toggle Project View: List",
+         "icon": "$(list-flat)"
       }
     ],
     "views": {
@@ -86,6 +96,14 @@
         {
           "command": "redmine.refreshIssues",
           "when": "false"
+        },
+        {
+          "command": "redmine.toggleTreeView",
+          "when": "false"
+        },
+        {
+          "command": "redmine.toggleListView",
+          "when": "false"
         }
       ],
       "view/title": [
@@ -96,6 +114,16 @@
         {
           "command": "redmine.changeDefaultServer",
           "when": "view == 'redmine-explorer-projects' && !hasSingleConfig"
+        },
+        {
+          "command": "redmine.toggleTreeView",
+          "when": "view == 'redmine-explorer-projects' && redmine:treeViewStyle",
+          "group": "navigation"
+        },
+        {
+          "command": "redmine.toggleListView",
+          "when": "view == 'redmine-explorer-projects' && !redmine:treeViewStyle",
+          "group": "navigation"
         },
         {
           "command": "redmine.refreshIssues",
