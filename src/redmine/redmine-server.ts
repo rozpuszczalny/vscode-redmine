@@ -197,7 +197,12 @@ export class RedmineServer {
               new RedmineProject(this, {
                 ...proj,
                 id: `${proj.id}`,
-                parent: proj.parent,
+                parent: proj.parent
+                  ? {
+                      ...proj.parent,
+                      id: `${proj.parent.id}`,
+                    }
+                  : undefined,
               })
           ),
         ]
