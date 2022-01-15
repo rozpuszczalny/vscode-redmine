@@ -33,7 +33,7 @@ _Missing a feature? Open an issue and let me know!_
 
 ## Requirements
 
-It's required to enable REST web services in `/settings?tab=api` of your redmine (you have to be administator of redmine server).
+It's required to enable REST web services in `/settings?tab=api` of your redmine (you have to be administrator of redmine server).
 
 ## Extension Settings
 
@@ -50,7 +50,7 @@ This extension contributes the following settings:
 
 ## Contribution
 
-Feel free to contact me, if you want to contribute. ToDo features can be found in `Projects` tab on GitHub.
+If you want to contribute to the project, please read [contributing guide](./CONTRIBUTING.md) guide.
 
 ## Known Issues
 
@@ -58,7 +58,7 @@ No known issues yet. If you found one, feel free to open an issue!
 
 ## Release Notes
 
-See `CHANGELOG.md`
+See [change log](./CHANGELOG.md)
 
 ## Attributions
 
