@@ -1,6 +1,6 @@
 import { RedmineServer } from "./redmine-server";
 import { QuickPickItem } from "vscode";
-import { ProjectParentItem } from "./models/project";
+import { NamedEntity } from "./models/named-entity";
 
 export interface RedmineProjectOptions {
   /**
@@ -8,11 +8,11 @@ export interface RedmineProjectOptions {
    * creation, it is an **ID** of a project in the database.
    * @example 1
    */
-  id: string;
+  id: number;
   name: string;
   description: string;
   identifier: string;
-  parent?: ProjectParentItem;
+  parent?: NamedEntity;
 }
 
 export interface ProjectQuickPickItem extends QuickPickItem {

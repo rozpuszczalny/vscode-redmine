@@ -1,28 +1,19 @@
 import { RedmineServer } from "../../redmine/redmine-server";
 import * as vscode from "vscode";
 import { IssueController } from "../../controllers/issue-controller";
+import { errorToString } from "../../utilities/error-to-string";
 
-export default async (server: RedmineServer, issueId: string) => {
-  if (!issueId || !issueId.trim()) {
+export default async (
+  server: RedmineServer,
+  issueId: string | null | undefined
+) => {
+  if (!issueId || !issueId.trim() || !parseInt(issueId, 10)) {
     return;
   }
 
-  const promise = server.getIssueById(issueId);
+  const promise = server.getIssueById(parseInt(issueId, 10));
 
-  promise.then(
-    (issue) => {
-      if (!issue) return;
-
-      const controller = new IssueController(issue.issue, server);
-
-      controller.listActions();
-    },
-    (error) => {
-      vscode.window.showErrorMessage(error);
-    }
-  );
-
-  await vscode.window.withProgress(
+  vscode.window.withProgress(
     {
       location: vscode.ProgressLocation.Window,
     },
@@ -33,4 +24,16 @@ export default async (server: RedmineServer, issueId: string) => {
       return promise;
     }
   );
+
+  try {
+    const issue = await promise;
+
+    if (!issue) return;
+
+    const controller = new IssueController(issue.issue, server);
+
+    controller.listActions();
+  } catch (error) {
+    vscode.window.showErrorMessage(errorToString(error));
+  }
 };

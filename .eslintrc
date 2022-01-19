@@ -15,6 +15,11 @@
       {
         "argsIgnorePattern": "^_"
       }
-    ]
+    ],
+    "eqeqeq": "error",
+    "prefer-const": "error",
+    "no-console": "error",
+    "@typescript-eslint/no-explicit-any": "error",
+    "@typescript-eslint/no-non-null-assertion": "off"
   }
 }

@@ -40,7 +40,7 @@ export class IssueController {
         placeHolder: `"hours spent|additional message" or "hours spent|"`,
       })
       .then((input) => {
-        const indexOf = input.indexOf("|");
+        const indexOf = input?.indexOf("|") ?? -1;
         if (indexOf === -1) {
           vscode.window
             .showWarningMessage(
@@ -52,8 +52,8 @@ export class IssueController {
             );
           return;
         }
-        const hours = input.substring(0, indexOf);
-        const message = input.substring(indexOf + 1);
+        const hours = input!.substring(0, indexOf);
+        const message = input!.substring(indexOf + 1);
 
         this.redmine
           .addTimeEntry(this.issue.id, activity.activity.id, hours, message)
@@ -184,9 +184,10 @@ export class IssueController {
     }
 
     const desiredAssignee = assigneeChoice.assignee;
-    const message = await vscode.window.showInputBox({
-      placeHolder: "Message",
-    });
+    const message =
+      (await vscode.window.showInputBox({
+        placeHolder: "Message",
+      })) ?? "";
 
     const quickUpdate = new QuickUpdate(
       this.issue.id,

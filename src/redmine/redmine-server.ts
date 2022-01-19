@@ -14,7 +14,8 @@ import { TimeEntry } from "./models/time-entry";
 import { Issue } from "./models/issue";
 import { IssueStatus as RedmineIssueStatus } from "./models/issue-status";
 import { Membership as RedmineMembership } from "./models/membership";
-import { isEqual } from "lodash";
+import isNil from "lodash/isNil";
+import isEqual from "lodash/isEqual";
 
 type HttpMethods = "GET" | "POST" | "PUT" | "DELETE" | "PATCH";
 
@@ -51,9 +52,9 @@ export class RedmineOptionsError extends Error {
 }
 
 export class RedmineServer {
-  options: RedmineServerOptions;
+  options!: RedmineServerOptions;
 
-  private timeEntryActivities: TimeEntryActivity[] = null;
+  private timeEntryActivities: TimeEntryActivity[] | null = null;
 
   get request() {
     return this.options.url.protocol === "https:"
@@ -69,7 +70,7 @@ export class RedmineServer {
       throw new RedmineOptionsError("Key cannot be empty!");
     }
     const url = parse(options.address);
-    if (["https:", "http:"].indexOf(url.protocol) === -1) {
+    if (["https:", "http:"].indexOf(url.protocol ?? "") === -1) {
       throw new RedmineOptionsError(
         "Address must have supported protocol (http/https)"
       );
@@ -81,7 +82,7 @@ export class RedmineServer {
       ...options,
       url: parse(options.address),
     };
-    if (this.options.additionalHeaders == null) {
+    if (isNil(this.options.additionalHeaders)) {
       this.options.additionalHeaders = {};
     }
   }
@@ -105,8 +106,8 @@ export class RedmineServer {
       method,
     };
     if (data) {
-      options.headers["Content-Length"] = data.length;
-      options.headers["Content-Type"] = "application/json";
+      options.headers!["Content-Length"] = data.length;
+      options.headers!["Content-Type"] = "application/json";
     }
 
     return new Promise((resolve, reject) => {
@@ -117,45 +118,45 @@ export class RedmineServer {
 
       const handleEnd = (clientResponse: http.IncomingMessage) => () => {
         const { statusCode, statusMessage } = clientResponse;
-        console.log("end", statusCode);
-        if (statusCode == 401) {
+        if (statusCode === 401) {
           reject(
-            "Server returned 401 (perhaps your API Key is not valid, or your server has additional authentication methods?)"
+            new Error(
+              "Server returned 401 (perhaps your API Key is not valid, or your server has additional authentication methods?)"
+            )
           );
           return;
         }
-        if (statusCode == 403) {
-          reject("Server returned 403 (perhaps you haven't got permissions?)");
+        if (statusCode === 403) {
+          reject(
+            new Error(
+              "Server returned 403 (perhaps you haven't got permissions?)"
+            )
+          );
           return;
         }
-        if (statusCode == 404) {
-          reject("Resource doesn't exsist");
+        if (statusCode === 404) {
+          reject(new Error("Resource doesn't exist"));
           return;
         }
 
         // TODO: Other errors handle
-        if (statusCode >= 400) {
-          reject(statusMessage);
+        if (statusCode! >= 400) {
+          reject(new Error(`Server returned ${statusMessage}`));
           return;
         }
-
-        console.log(incomingBuffer);
 
         if (incomingBuffer.length > 0) {
           try {
             const object = JSON.parse(incomingBuffer.toString("utf8"));
-            console.log(incomingBuffer, object);
-
             resolve(object);
           } catch (e) {
-            console.warn("Couldn't parse response as JSON...");
-
-            resolve(null);
+            reject(new Error("Couldn't parse Redmine response as JSON..."));
           }
           return;
         }
 
-        resolve(null);
+        // Using `doRequest` on the endpoints that return 204 should type as void/null
+        resolve((null as unknown) as T);
       };
 
       const clientRequest = this.request(options, (incoming) => {
@@ -164,9 +165,9 @@ export class RedmineServer {
       });
 
       const handleError = (error: Error) => {
-        console.error(error);
-
-        reject(`NodeJS Request Error (${error.name}): ${error.message}`);
+        reject(
+          new Error(`NodeJS Request Error (${error.name}): ${error.message}`)
+        );
       };
 
       clientRequest.on("error", handleError);
@@ -179,14 +180,17 @@ export class RedmineServer {
     const req = async (
       offset = 0,
       limit = 50,
-      count = null,
-      accumulator = []
-    ) => {
+      count: number | null = null,
+      accumulator: RedmineProject[] = []
+    ): Promise<RedmineProject[]> => {
       if (count && count <= offset) {
         return accumulator;
       }
 
-      const [totalCount, result] = await this.doRequest<{
+      const [totalCount, result]: [
+        number,
+        RedmineProject[]
+      ] = await this.doRequest<{
         projects: Project[];
         total_count: number;
       }>(`/projects.json?limit=${limit}&offset=${offset}`, "GET").then(
@@ -196,13 +200,6 @@ export class RedmineServer {
             (proj) =>
               new RedmineProject(this, {
                 ...proj,
-                id: `${proj.id}`,
-                parent: proj.parent
-                  ? {
-                      ...proj.parent,
-                      id: `${proj.parent.id}`,
-                    }
-                  : undefined,
               })
           ),
         ]
@@ -259,7 +256,7 @@ export class RedmineServer {
    * Returns promise, that resolves to an issue
    * @param issueId ID of issue
    */
-  getIssueById(issueId: string): Promise<{ issue: Issue }> {
+  getIssueById(issueId: number): Promise<{ issue: Issue }> {
     return this.doRequest(`/issues/${issueId}.json`, "GET");
   }
 
@@ -270,23 +267,24 @@ export class RedmineServer {
     return this.doRequest<{ issue: Issue }>(
       `/issues/${issue.id}.json`,
       "PUT",
-      new Buffer(
+      Buffer.from(
         JSON.stringify({
           issue: {
             status_id: statusId,
           },
-        })
+        }),
+        "utf8"
       )
     );
   }
 
-  issueStatuses: { issue_statuses: RedmineIssueStatus[] } = null;
+  issueStatuses: { issue_statuses: RedmineIssueStatus[] } | null = null;
 
   /**
    * Returns promise, that resolves to list of issue statuses in provided redmine server
    */
   getIssueStatuses(): Promise<{ issue_statuses: RedmineIssueStatus[] }> {
-    if (this.issueStatuses == null) {
+    if (isNil(this.issueStatuses)) {
       return this.doRequest<{ issue_statuses: RedmineIssueStatus[] }>(
         "/issue_statuses.json",
         "GET"
@@ -307,7 +305,7 @@ export class RedmineServer {
     const statuses = await this.getIssueStatuses();
     return statuses.issue_statuses.map((s) => new IssueStatus(s.id, s.name));
   }
-  async getMemberships(projectId: string): Promise<Membership[]> {
+  async getMemberships(projectId: number): Promise<Membership[]> {
     const membershipsResponse = await this.doRequest<{
       memberships: RedmineMembership[];
     }>(`/projects/${projectId}/memberships.json`, "GET");
@@ -317,26 +315,27 @@ export class RedmineServer {
       .map((m) => new Membership(m.user.id, m.user.name));
   }
   async applyQuickUpdate(quickUpdate: QuickUpdate): Promise<QuickUpdateResult> {
-    await this.doRequest<{ issue: Issue }>(
+    await this.doRequest<void>(
       `/issues/${quickUpdate.issueId}.json`,
       "PUT",
-      new Buffer(
+      Buffer.from(
         JSON.stringify({
           issue: {
             status_id: quickUpdate.status.statusId,
             assigned_to_id: quickUpdate.assignee.userId,
             notes: quickUpdate.message,
           },
-        })
+        }),
+        "utf8"
       )
     );
     const issueRequest = await this.getIssueById(quickUpdate.issueId);
     const issue = issueRequest.issue;
     const updateResult = new QuickUpdateResult();
-    if (issue.assigned_to.id != quickUpdate.assignee.userId) {
+    if (issue.assigned_to.id !== quickUpdate.assignee.userId) {
       updateResult.addDifference("Couldn't assign user");
     }
-    if (issue.status.id != quickUpdate.status.statusId) {
+    if (issue.status.id !== quickUpdate.status.statusId) {
       updateResult.addDifference("Couldn't update status");
     }
     return updateResult;

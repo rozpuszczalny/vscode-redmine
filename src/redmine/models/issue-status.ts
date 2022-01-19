@@ -1,2 +1,5 @@
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-export type IssueStatus = any;
+export interface IssueStatus {
+  id: number;
+  name: string;
+  is_closed: boolean;
+}

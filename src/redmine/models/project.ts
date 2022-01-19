@@ -1,12 +1,9 @@
+import { NamedEntity } from "./named-entity";
+
 export interface Project {
-  id: string | number;
+  id: number;
   name: string;
   description: string;
   identifier: string;
-  parent?: ProjectParentItem;
-}
-
-export interface ProjectParentItem {
-  id: string;
-  name: string;
+  parent?: NamedEntity;
 }
