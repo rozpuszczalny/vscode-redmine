@@ -4,9 +4,11 @@ All notable changes to the "vscode-redmine" extension will be documented in this
 
 ## [Unreleased]
 
+## 1.1.0 - 19.01.2022
+
 ### Added
 
-- [Issue #34](https://github.com/rozpuszczalny/vscode-redmine/issues/34) - display subprojects as a tree and toggle back to flat view
+- [Issue #34](https://github.com/rozpuszczalny/vscode-redmine/issues/34) - display subprojects as a tree and toggle back to flat view (thanks to [doganOz](https://github.com/doganOz)!)
 - Code of conduct, contributing guide and issue template
 
 ### Changed

@@ -2,7 +2,7 @@
   "name": "vscode-redmine",
   "displayName": "Redmine",
   "description": "Integration with VSCode and Redmine",
-  "version": "1.0.4",
+  "version": "1.1.0",
   "publisher": "rozpuszczalny",
   "license": "MIT",
   "icon": "logo.png",
@@ -55,14 +55,14 @@
         "icon": "$(refresh)"
       },
       {
-         "command": "redmine.toggleTreeView",
-         "title": "Toggle Project View: Tree",
-         "icon": "$(list-tree)"
+        "command": "redmine.toggleTreeView",
+        "title": "Toggle Project View: Tree",
+        "icon": "$(list-tree)"
       },
       {
-         "command": "redmine.toggleListView",
-         "title": "Toggle Project View: List",
-         "icon": "$(list-flat)"
+        "command": "redmine.toggleListView",
+        "title": "Toggle Project View: List",
+        "icon": "$(list-flat)"
       }
     ],
     "views": {
