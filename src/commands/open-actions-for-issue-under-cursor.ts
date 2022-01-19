@@ -27,6 +27,9 @@ function getTextUnderCursor(editor: vscode.TextEditor): string {
 
 function getIssueIdUnderCursor(): string | null {
   const editor = vscode.window.activeTextEditor;
+  if (!editor) {
+    return null;
+  }
   const text = getTextUnderCursor(editor);
   const issueId = text.replace("#", "").replace(":", "");
   if (!/^\d+$/.test(issueId)) {

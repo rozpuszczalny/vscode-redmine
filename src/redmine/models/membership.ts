@@ -1,2 +1,8 @@
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-export type Membership = any;
+import { NamedEntity } from "./named-entity";
+
+export interface Membership {
+  id: number;
+  project: NamedEntity;
+  user: NamedEntity;
+  roles: NamedEntity[];
+}

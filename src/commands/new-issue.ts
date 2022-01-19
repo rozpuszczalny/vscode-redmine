@@ -1,4 +1,5 @@
 import * as vscode from "vscode";
+import { errorToString } from "../utilities/error-to-string";
 import { ActionProperties } from "./action-properties";
 
 export default async ({ server, config }: ActionProperties) => {
@@ -21,25 +22,6 @@ export default async ({ server, config }: ActionProperties) => {
 
   const promise = server.getProjects();
 
-  promise.then(
-    (projects) => {
-      vscode.window
-        .showQuickPick(
-          projects.map((project) => project.toQuickPickItem()),
-          {
-            placeHolder: "Choose project to create issue in",
-          }
-        )
-        .then((project) => {
-          if (project === undefined) return;
-          open(project.identifier);
-        });
-    },
-    (error) => {
-      vscode.window.showErrorMessage(error);
-    }
-  );
-
   vscode.window.withProgress(
     {
       location: vscode.ProgressLocation.Window,
@@ -51,4 +33,21 @@ export default async ({ server, config }: ActionProperties) => {
       return promise;
     }
   );
+
+  try {
+    const projects = await promise;
+
+    const project = await vscode.window.showQuickPick(
+      projects.map((project) => project.toQuickPickItem()),
+      {
+        placeHolder: "Choose project to create issue in",
+      }
+    );
+
+    if (project === undefined) return;
+
+    open(project.identifier);
+  } catch (error) {
+    vscode.window.showErrorMessage(errorToString(error));
+  }
 };

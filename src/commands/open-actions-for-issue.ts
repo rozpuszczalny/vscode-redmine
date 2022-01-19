@@ -9,17 +9,14 @@ export default async ({ server }: ActionProperties, issueId?: string) => {
     });
   }
 
-  if (!issueId || !issueId.trim()) {
+  if (!issueId || !issueId.trim() || isNaN(parseInt(issueId, 10))) {
     return;
   }
 
-  const promise = server.getIssueById(issueId);
-
-  console.log(issueId);
+  const promise = server.getIssueById(parseInt(issueId, 10));
 
   promise.then(
     (issue) => {
-      console.log(issue);
       if (!issue) return;
 
       const controller = new IssueController(issue.issue, server);
@@ -27,7 +24,6 @@ export default async ({ server }: ActionProperties, issueId?: string) => {
       controller.listActions();
     },
     (error) => {
-      console.log(error);
       vscode.window.showErrorMessage(error);
     }
   );

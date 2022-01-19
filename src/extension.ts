@@ -29,7 +29,7 @@ export function activate(context: vscode.ExtensionContext): void {
   vscode.commands.executeCommand(
     "setContext",
     "redmine:hasSingleConfig",
-    vscode.workspace.workspaceFolders.length <= 1
+    (vscode.workspace.workspaceFolders?.length ?? 0) <= 1
   );
 
   vscode.commands.executeCommand(
@@ -38,67 +38,57 @@ export function activate(context: vscode.ExtensionContext): void {
     ProjectsViewStyle.LIST
   );
 
-  const parseConfiguration = (
+  const parseConfiguration = async (
     withPick = true,
     props?: ActionProperties,
-    ...args: unknown[]
-  ) => {
-    return withPick
-      ? vscode.window
-          .showWorkspaceFolderPick()
-          .then((v) => {
-            if (!v) {
-              vscode.commands.executeCommand(
-                "setContext",
-                "redmine:hasSingleConfig",
-                true
-              );
-            } else {
-              vscode.commands.executeCommand(
-                "setContext",
-                "redmine:hasSingleConfig",
-                false
-              );
-            }
-            const config = vscode.workspace.getConfiguration(
-              "redmine",
-              v && v.uri
-            ) as RedmineConfig;
-            const redmineServer = new RedmineServer({
-              address: config.url,
-              key: config.apiKey,
-              additionalHeaders: config.additionalHeaders,
-              rejectUnauthorized: config.rejectUnauthorized,
-            });
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    ...args: any[]
+  ): Promise<{
+    props?: ActionProperties;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    args: any[];
+  }> => {
+    if (!withPick) {
+      return Promise.resolve({
+        props,
+        args,
+      });
+    }
 
-            const fromBucket = bucket.servers.find((s) =>
-              s.compare(redmineServer)
-            );
-            const server = fromBucket || redmineServer;
+    const pickedFolder = await vscode.window.showWorkspaceFolderPick();
 
-            if (!fromBucket) {
-              bucket.servers.push(server);
-            }
+    vscode.commands.executeCommand(
+      "setContext",
+      "redmine:hasSingleConfig",
+      !pickedFolder
+    );
 
-            return {
-              props: {
-                server,
-                config,
-              },
-              args: [],
-            };
-          })
-          .then(
-            (s) => s,
-            (err) => {
-              console.log(err);
-              throw err;
-            }
-          )
-      : Promise.resolve({
-          props,
-          args,
-        });
+    const config = vscode.workspace.getConfiguration(
+      "redmine",
+      pickedFolder?.uri
+    ) as RedmineConfig;
+
+    const redmineServer = new RedmineServer({
+      address: config.url,
+      key: config.apiKey,
+      additionalHeaders: config.additionalHeaders,
+      rejectUnauthorized: config.rejectUnauthorized,
+    });
+
+    const fromBucket = bucket.servers.find((s) => s.compare(redmineServer));
+    const server = fromBucket || redmineServer;
+
+    if (!fromBucket) {
+      bucket.servers.push(server);
+    }
+
+    return {
+      props: {
+        server,
+        config,
+      },
+      args: [],
+    };
   };
 
   const currentConfig = vscode.workspace.getConfiguration("redmine");
@@ -140,14 +130,24 @@ export function activate(context: vscode.ExtensionContext): void {
 
   const registerCommand = (
     name: string,
-    action: (props: ActionProperties, ...args: unknown[]) => void
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    action: (props: ActionProperties, ...args: any[]) => void
   ) => {
     context.subscriptions.push(
-      vscode.commands.registerCommand(`redmine.${name}`, (...argz) => {
-        parseConfiguration(...argz).then(({ props, args }) => {
-          action(props, ...args);
-        });
-      })
+      vscode.commands.registerCommand(
+        `redmine.${name}`,
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        (withPick?: boolean, props?: ActionProperties, ...args: any[]) => {
+          parseConfiguration(withPick, props, ...args).then(
+            ({ props, args }) => {
+              // `props` should be set when `withPick` is `false`.
+              // Otherwise `parseConfiguration` will take care of getting ActionProperties.
+              // It's used mainly by trees that always pass props argument.
+              action(props!, ...args);
+            }
+          );
+        }
+      )
     );
   };
 
