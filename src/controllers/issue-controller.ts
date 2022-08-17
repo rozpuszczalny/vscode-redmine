@@ -167,7 +167,7 @@ export class IssueController {
     const assigneeChoice = await vscode.window.showQuickPick(
       memberships.map((membership) => {
         return {
-          label: membership.userName,
+          label: `${membership.name}${!membership.isUser ? " (group)" : ""}`,
           description: "",
           detail: "",
           assignee: membership,

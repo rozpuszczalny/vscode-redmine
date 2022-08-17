@@ -1,7 +1,8 @@
 export class Membership {
   constructor(
-    public readonly userId: number,
-    public readonly userName: string
+    public readonly id: number,
+    public readonly name: string,
+    public readonly isUser = true
   ) {}
 }
 

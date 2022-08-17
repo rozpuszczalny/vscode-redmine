@@ -310,9 +310,11 @@ export class RedmineServer {
       memberships: RedmineMembership[];
     }>(`/projects/${projectId}/memberships.json`, "GET");
 
-    return membershipsResponse.memberships
-      .filter((m) => m.user)
-      .map((m) => new Membership(m.user.id, m.user.name));
+    return membershipsResponse.memberships.map((m) =>
+      "user" in m
+        ? new Membership(m.user.id, m.user.name)
+        : new Membership(m.group.id, m.group.name, false)
+    );
   }
   async applyQuickUpdate(quickUpdate: QuickUpdate): Promise<QuickUpdateResult> {
     await this.doRequest<void>(
@@ -322,7 +324,7 @@ export class RedmineServer {
         JSON.stringify({
           issue: {
             status_id: quickUpdate.status.statusId,
-            assigned_to_id: quickUpdate.assignee.userId,
+            assigned_to_id: quickUpdate.assignee.id,
             notes: quickUpdate.message,
           },
         }),
@@ -332,7 +334,7 @@ export class RedmineServer {
     const issueRequest = await this.getIssueById(quickUpdate.issueId);
     const issue = issueRequest.issue;
     const updateResult = new QuickUpdateResult();
-    if (issue.assigned_to.id !== quickUpdate.assignee.userId) {
+    if (issue.assigned_to.id !== quickUpdate.assignee.id) {
       updateResult.addDifference("Couldn't assign user");
     }
     if (issue.status.id !== quickUpdate.status.statusId) {
