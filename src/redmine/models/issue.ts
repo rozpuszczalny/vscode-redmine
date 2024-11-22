@@ -1,4 +1,5 @@
 import { NamedEntity } from "./named-entity";
+import { Journal } from "./journal";
 
 export interface Issue {
   id: number;
@@ -18,4 +19,5 @@ export interface Issue {
   created_on: string;
   updated_on: string;
   closed_on: string | null;
+  journals: Journal[];
 }

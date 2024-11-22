@@ -9,6 +9,7 @@ Redmine extension for Visual Studio Code.
   - List projects and open issues in them
 - Create issue (opens redmine create issue in browser)
 - List of issues assigned to you
+- Filter and sort issues
 - Open issue by id
 - Open issue by selected number in document
 - Issue actions:
@@ -16,6 +17,7 @@ Redmine extension for Visual Studio Code.
   - Add time entry to an issue
   - Open issue in browser
   - Quick update issue
+  - Grab description of an issue
 
 _Missing a feature? Open an issue and let me know!_
 
@@ -47,6 +49,10 @@ This extension contributes the following settings:
   _NOTE: this is an identifier of project, not display name of the project_
 
 - `redmine.additionalHeaders`: Object of additional headers to be sent along with every request to redmine server
+
+- `redmine.filter.status`: Array of status identifiers to filter issues
+
+- `redmine.sort`: Array of sort key and order pairs (ex: 'id:desc', 'priority:asc')
 
 ## Contribution
 

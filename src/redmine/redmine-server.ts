@@ -41,6 +41,14 @@ export interface RedmineServerConnectionOptions {
    * @example { "Authorization": "Basic YTph" }
    */
   additionalHeaders?: { [key: string]: string };
+  /**
+   * @example { status: [1, 2, 3] }
+   */
+  filter?: { status: [] };
+  /**
+   * @example [ "status:desc"]
+   */
+  sort?: [];
 }
 
 interface RedmineServerOptions extends RedmineServerConnectionOptions {
@@ -257,7 +265,7 @@ export class RedmineServer {
    * @param issueId ID of issue
    */
   getIssueById(issueId: number): Promise<{ issue: Issue }> {
-    return this.doRequest(`/issues/${issueId}.json`, "GET");
+    return this.doRequest(`/issues/${issueId}.json?include=journals`, "GET");
   }
 
   /**
@@ -347,8 +355,10 @@ export class RedmineServer {
    * Returns promise, that resolves to list of issues assigned to api key owner
    */
   getIssuesAssignedToMe(): Promise<{ issues: Issue[] }> {
+    const status_id: string = this.options.filter?.status?.join("|") ?? "open";
+    const sort: string = this.options.sort?.join(",") ?? "id:desc";
     return this.doRequest<{ issues: Issue[] }>(
-      "/issues.json?status_id=open&assigned_to_id=me",
+      `/issues.json?status_id=${status_id}&assigned_to_id=me&sort=${sort}&limit=999`,
       "GET"
     );
   }

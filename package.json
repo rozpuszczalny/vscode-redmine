@@ -168,6 +168,24 @@
           "description": "Additional headers",
           "default": {},
           "scope": "resource"
+        },
+        "redmine.filter.status": {
+          "type": "array",
+          "description": "Identifiers of status to filter issues",
+          "default": [1,2,3,4,5],
+          "items": {
+            "type": "number"
+          },
+          "scope": "resource"
+        },
+        "redmine.sort": {
+          "type": "array",
+          "description": "Sort keys",
+          "default": [ "id:desc" ],
+          "items": {
+            "type": "string"
+          },
+          "scope": "resource"
         }
       }
     }

@@ -25,4 +25,12 @@ export interface RedmineConfig extends WorkspaceConfiguration {
    * Additional headers
    */
   additionalHeaders?: { [key: string]: string };
+  /**
+   * Filter
+   */
+  filter: { status: [] };
+  /**
+   * Sort
+   */
+  sort: [];
 }

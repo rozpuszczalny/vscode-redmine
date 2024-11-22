@@ -214,6 +214,38 @@ export class IssueController {
     }
   }
 
+  private async grabDescription() {
+    try {
+      const issueDetails = await this.redmine.getIssueById(this.issue.id);
+      let description = `#${this.issue.id} ${this.issue.subject}\n\n${issueDetails.issue.description}`;
+      issueDetails.issue.journals
+        .sort((a, b) => b.created_on.localeCompare(a.created_on))
+        .forEach((journal) => {
+          description += `\n\n---\n\n${journal.created_on}\n\n${journal.notes}`;
+        });
+
+      const replacePairs: [RegExp, string][] = [
+        [/<.*\/?>/gi, ""],
+        [/&nbsp;/g, " "],
+        [/&gt;/g, ">"],
+        [/&lt;/g, "<"],
+        [/&amp;/g, "&"],
+        [/&quot;/g, '"'],
+      ];
+      for (const [pattern, replacement] of replacePairs) {
+        description = description.replace(pattern, replacement);
+      }
+
+      const document = await vscode.workspace.openTextDocument({
+        content: description,
+        language: "html",
+      });
+      await vscode.window.showTextDocument(document);
+    } catch (error) {
+      vscode.window.showErrorMessage(`Failed to grab description: ${error}`);
+    }
+  }
+
   listActions() {
     const issueDetails = `Issue #${this.issue.id} assigned to ${
       this.issue.assigned_to ? this.issue.assigned_to.name : "no one"
@@ -247,6 +279,12 @@ export class IssueController {
               "Change assignee, status and leave a message in one step",
             detail: issueDetails,
           },
+          {
+            action: "grabDescription",
+            label: "Grab description",
+            description: "Grabs description of the issue",
+            detail: issueDetails,
+          },
         ],
         {
           placeHolder: "Pick an action to do",
@@ -266,6 +304,9 @@ export class IssueController {
           }
           if (option.action === "quickUpdate") {
             this.quickUpdate();
+          }
+          if (option.action === "grabDescription") {
+            this.grabDescription();
           }
         },
         (_error) => {

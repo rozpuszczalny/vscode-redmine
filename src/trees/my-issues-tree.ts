@@ -14,6 +14,8 @@ export class MyIssuesTree implements vscode.TreeDataProvider<Issue> {
       key: config.apiKey,
       additionalHeaders: config.additionalHeaders,
       rejectUnauthorized: config.rejectUnauthorized,
+      filter: config.filter,
+      sort: config.sort,
     });
   }
 
